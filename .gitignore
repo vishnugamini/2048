@@ -3,3 +3,5 @@
 DerivedData/
 xcuserdata/
 *.xcuserstate
+.swiftpm/
+Premium2048.xcodeproj/project.xcworkspace/
