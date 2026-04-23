@@ -5,7 +5,7 @@ struct BoardView: View {
 
     var body: some View {
         GeometryReader { proxy in
-            let boardSize = min(proxy.size.width, proxy.size.height)
+            let boardSize = proxy.size.width
             let spacing = boardSize * 0.035
             let tileSize = (boardSize - (spacing * 5)) / 4
 
@@ -31,5 +31,6 @@ struct BoardView: View {
             .frame(width: boardSize, height: boardSize)
         }
         .aspectRatio(1, contentMode: .fit)
+        .clipped()
     }
 }

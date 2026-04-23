@@ -10,17 +10,19 @@ struct ContentView: View {
     @State private var screen: Screen = .menu
 
     var body: some View {
-        ZStack {
-            backgroundLayer
+        GeometryReader { proxy in
+            ZStack {
+                backgroundLayer
 
-            switch screen {
-            case .menu:
-                menuScreen
-            case .game:
-                gameScreen
+                switch screen {
+                case .menu:
+                    menuScreen(in: proxy)
+                case .game:
+                    gameScreen(in: proxy)
+                }
             }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .ignoresSafeArea()
         .sheet(isPresented: $viewModel.showingSettings) {
             settingsSheet
@@ -42,8 +44,8 @@ struct ContentView: View {
             LinearGradient(
                 colors: [
                     Color(red: 0.04, green: 0.08, blue: 0.14),
-                    Color(red: 0.08, green: 0.17, blue: 0.27),
-                    Color(red: 0.10, green: 0.22, blue: 0.34),
+                    Color(red: 0.07, green: 0.16, blue: 0.26),
+                    Color(red: 0.10, green: 0.24, blue: 0.36),
                 ],
                 startPoint: .topLeading,
                 endPoint: .bottomTrailing
@@ -51,166 +53,160 @@ struct ContentView: View {
 
             Circle()
                 .fill(Color.white.opacity(0.08))
-                .frame(width: 320, height: 320)
+                .frame(width: 340, height: 340)
                 .blur(radius: 90)
-                .offset(x: -150, y: -320)
+                .offset(x: -160, y: -310)
 
             Circle()
-                .fill(PremiumTheme.accent.opacity(0.16))
+                .fill(PremiumTheme.accent.opacity(0.18))
                 .frame(width: 360, height: 360)
                 .blur(radius: 120)
-                .offset(x: 180, y: 340)
+                .offset(x: 180, y: 320)
 
-            RoundedRectangle(cornerRadius: 140, style: .continuous)
+            RoundedRectangle(cornerRadius: 150, style: .continuous)
                 .fill(Color.white.opacity(0.05))
-                .frame(width: 250, height: 680)
-                .blur(radius: 50)
+                .frame(width: 280, height: 720)
+                .blur(radius: 52)
                 .rotationEffect(.degrees(24))
-                .offset(x: 170, y: -50)
+                .offset(x: 170, y: -40)
         }
     }
 
-    private var menuScreen: some View {
-        GeometryReader { proxy in
-            let safeTop = proxy.safeAreaInsets.top
-            let safeBottom = max(proxy.safeAreaInsets.bottom, 24)
-            let sidePadding: CGFloat = 24
-            let boardSize = min(proxy.size.width - (sidePadding * 2), proxy.size.height * 0.42)
+    private func menuScreen(in proxy: GeometryProxy) -> some View {
+        let metrics = LayoutMetrics(proxy: proxy)
 
-            VStack(spacing: 0) {
-                HStack {
-                    Text("2048")
-                        .font(.system(size: 48, weight: .black, design: .rounded))
-                        .foregroundStyle(.white)
-                    Spacer()
-                    scoreBadge(value: viewModel.bestScore)
-                }
-                .padding(.horizontal, sidePadding)
-                .padding(.top, safeTop + 12)
+        return VStack(spacing: 0) {
+            HStack {
+                Text("2048")
+                    .font(.system(size: metrics.titleSize, weight: .black, design: .rounded))
+                    .foregroundStyle(.white)
 
-                Spacer(minLength: 18)
+                Spacer()
 
-                BoardView(board: viewModel.board)
-                    .frame(width: boardSize, height: boardSize)
-                    .frame(maxWidth: .infinity)
-
-                Spacer(minLength: 24)
-
-                VStack(spacing: 14) {
-                    primaryButton(title: "New Game", systemImage: "sparkles") {
-                        viewModel.startNewGame()
-                        screen = .game
-                    }
-
-                    primaryButton(title: "Continue", systemImage: "play.fill") {
-                        screen = .game
-                    }
-                    .opacity(viewModel.continueGameAvailable() ? 1 : 0.45)
-                    .disabled(!viewModel.continueGameAvailable())
-
-                    HStack(spacing: 12) {
-                        secondaryButton(title: "Stats", systemImage: "chart.bar.fill") {
-                            viewModel.showingStats = true
-                        }
-                        secondaryButton(title: "Settings", systemImage: "slider.horizontal.3") {
-                            viewModel.showingSettings = true
-                        }
-                    }
-                }
-                .padding(.horizontal, sidePadding)
-                .padding(.bottom, safeBottom)
+                pill(title: "Best", value: "\(viewModel.bestScore)")
+                    .frame(width: metrics.scorePillWidth)
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-        }
-    }
+            .padding(.horizontal, metrics.sidePadding)
+            .padding(.top, metrics.topPadding)
 
-    private var gameScreen: some View {
-        GeometryReader { proxy in
-            let safeTop = proxy.safeAreaInsets.top
-            let safeBottom = max(proxy.safeAreaInsets.bottom, 18)
-            let sidePadding: CGFloat = 18
-            let width = proxy.size.width - (sidePadding * 2)
-            let boardSpace = proxy.size.height - safeTop - safeBottom - 178
-            let boardSize = min(width, max(280, boardSpace))
+            Spacer(minLength: metrics.verticalGap)
 
-            VStack(spacing: 0) {
-                HStack(spacing: 12) {
-                    secondaryIconButton(systemImage: "house") {
-                        viewModel.abandonCurrentGame()
-                        screen = .menu
-                    }
-
-                    Spacer()
-
-                    scoreCard(title: "Score", value: viewModel.score)
-                    scoreCard(title: "Best", value: viewModel.bestScore)
-
-                    secondaryIconButton(systemImage: "gearshape") {
-                        viewModel.showingSettings = true
-                    }
-                }
-                .padding(.horizontal, sidePadding)
-                .padding(.top, safeTop + 10)
-
-                Spacer(minLength: 14)
-
+            VStack(spacing: metrics.menuSpacing) {
                 BoardView(board: viewModel.board)
-                    .frame(width: boardSize, height: boardSize)
-                    .frame(maxWidth: .infinity)
-                    .contentShape(Rectangle())
-                    .gesture(
-                        DragGesture(minimumDistance: 16)
-                            .onEnded(handleDrag)
-                    )
+                    .frame(width: metrics.menuBoardSize, height: metrics.menuBoardSize)
 
-                Spacer(minLength: 14)
-
-                VStack(spacing: 14) {
-                    HStack(spacing: 12) {
-                        statChip(value: viewModel.highestTile)
-                        statChip(value: viewModel.stats.gamesPlayed)
-                        statChip(value: viewModel.stats.totalMoves)
-                    }
-
-                    HStack(spacing: 12) {
-                        secondaryButton(title: "Stats", systemImage: "chart.bar.fill") {
-                            viewModel.showingStats = true
-                        }
-                        primaryButton(title: "New Game", systemImage: "arrow.clockwise") {
-                            viewModel.startNewGame()
-                        }
-                    }
-                }
-                .padding(.horizontal, sidePadding)
-                .padding(.bottom, safeBottom)
+                menuButtons(metrics: metrics)
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .frame(maxWidth: .infinity)
+
+            Spacer(minLength: metrics.bottomPadding)
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
-    private func scoreBadge(value: Int) -> some View {
-        Text("Best \(value)")
-            .font(.system(size: 16, weight: .bold, design: .rounded))
-            .foregroundStyle(.white)
-            .padding(.horizontal, 16)
-            .padding(.vertical, 10)
-            .background(.ultraThinMaterial, in: Capsule())
-            .overlay(
-                Capsule().strokeBorder(Color.white.opacity(0.12), lineWidth: 1)
-            )
+    private func menuButtons(metrics: LayoutMetrics) -> some View {
+        VStack(spacing: metrics.buttonGap) {
+            primaryButton(title: "New Game", systemImage: "sparkles") {
+                viewModel.startNewGame()
+                screen = .game
+            }
+
+            primaryButton(title: "Continue", systemImage: "play.fill") {
+                screen = .game
+            }
+            .opacity(viewModel.continueGameAvailable() ? 1 : 0.45)
+            .disabled(!viewModel.continueGameAvailable())
+
+            HStack(spacing: metrics.buttonGap) {
+                secondaryButton(title: "Stats", systemImage: "chart.bar.fill") {
+                    viewModel.showingStats = true
+                }
+                secondaryButton(title: "Settings", systemImage: "slider.horizontal.3") {
+                    viewModel.showingSettings = true
+                }
+            }
+        }
+        .padding(.horizontal, metrics.sidePadding)
     }
 
-    private func scoreCard(title: String, value: Int) -> some View {
+    private func gameScreen(in proxy: GeometryProxy) -> some View {
+        let metrics = LayoutMetrics(proxy: proxy)
+
+        return VStack(spacing: 0) {
+            gameTopBar(metrics: metrics)
+
+            Spacer(minLength: metrics.verticalGap)
+
+            BoardView(board: viewModel.board)
+                .frame(width: metrics.gameBoardSize, height: metrics.gameBoardSize)
+                .frame(maxWidth: .infinity)
+                .contentShape(Rectangle())
+                .gesture(
+                    DragGesture(minimumDistance: 16)
+                        .onEnded(handleDrag)
+                )
+
+            Spacer(minLength: metrics.verticalGap)
+
+            gameBottomBar(metrics: metrics)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+
+    private func gameTopBar(metrics: LayoutMetrics) -> some View {
+        HStack(spacing: metrics.buttonGap) {
+            secondaryIconButton(systemImage: "house") {
+                viewModel.abandonCurrentGame()
+                screen = .menu
+            }
+
+            Spacer(minLength: metrics.buttonGap)
+
+            pill(title: "Score", value: "\(viewModel.score)")
+                .frame(width: metrics.scorePillWidth)
+            pill(title: "Best", value: "\(viewModel.bestScore)")
+                .frame(width: metrics.scorePillWidth)
+
+            secondaryIconButton(systemImage: "gearshape") {
+                viewModel.showingSettings = true
+            }
+        }
+        .padding(.horizontal, metrics.sidePadding)
+        .padding(.top, metrics.topPadding)
+    }
+
+    private func gameBottomBar(metrics: LayoutMetrics) -> some View {
+        VStack(spacing: metrics.buttonGap) {
+            HStack(spacing: metrics.buttonGap) {
+                statChip(value: viewModel.highestTile, metrics: metrics)
+                statChip(value: viewModel.stats.gamesPlayed, metrics: metrics)
+                statChip(value: viewModel.stats.totalMoves, metrics: metrics)
+            }
+
+            HStack(spacing: metrics.buttonGap) {
+                secondaryButton(title: "Stats", systemImage: "chart.bar.fill") {
+                    viewModel.showingStats = true
+                }
+                primaryButton(title: "New Game", systemImage: "arrow.clockwise") {
+                    viewModel.startNewGame()
+                }
+            }
+        }
+        .padding(.horizontal, metrics.sidePadding)
+        .padding(.bottom, metrics.bottomPadding)
+    }
+
+    private func pill(title: String, value: String) -> some View {
         VStack(alignment: .leading, spacing: 3) {
             Text(title)
                 .font(.system(size: 10, weight: .bold, design: .rounded))
                 .foregroundStyle(Color.white.opacity(0.58))
-            Text("\(value)")
+            Text(value)
                 .font(.system(size: 22, weight: .bold, design: .rounded))
                 .foregroundStyle(.white)
                 .minimumScaleFactor(0.55)
         }
-        .frame(width: 92, alignment: .leading)
+        .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.horizontal, 14)
         .padding(.vertical, 11)
         .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 22, style: .continuous))
@@ -220,12 +216,12 @@ struct ContentView: View {
         )
     }
 
-    private func statChip(value: Int) -> some View {
+    private func statChip(value: Int, metrics: LayoutMetrics) -> some View {
         Text("\(value)")
-            .font(.system(size: 17, weight: .bold, design: .rounded))
+            .font(.system(size: metrics.statFontSize, weight: .bold, design: .rounded))
             .foregroundStyle(.white)
             .frame(maxWidth: .infinity)
-            .padding(.vertical, 14)
+            .padding(.vertical, metrics.statVerticalPadding)
             .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 22, style: .continuous))
             .overlay(
                 RoundedRectangle(cornerRadius: 22, style: .continuous)
@@ -369,6 +365,54 @@ struct ContentView: View {
         } else {
             viewModel.handleSwipe(vertical > 0 ? .down : .up)
         }
+    }
+}
+
+private struct LayoutMetrics {
+    let proxy: GeometryProxy
+
+    var width: CGFloat { proxy.size.width }
+    var height: CGFloat { proxy.size.height }
+    var safeWidth: CGFloat { width - proxy.safeAreaInsets.leading - proxy.safeAreaInsets.trailing }
+    var safeHeight: CGFloat { height - proxy.safeAreaInsets.top - proxy.safeAreaInsets.bottom }
+
+    private var isShortPhone: Bool { safeHeight < 760 }
+    private var isNarrow: Bool { safeWidth < 380 }
+    private var isTabletLike: Bool { safeWidth >= 700 }
+
+    var topPadding: CGFloat { proxy.safeAreaInsets.top + (isShortPhone ? 8 : 14) }
+    var bottomPadding: CGFloat { max(proxy.safeAreaInsets.bottom, isShortPhone ? 12 : 18) }
+    var sidePadding: CGFloat {
+        if isTabletLike { return 32 }
+        return isNarrow ? 14 : 20
+    }
+    var verticalGap: CGFloat {
+        if isTabletLike { return 22 }
+        return isShortPhone ? 10 : 18
+    }
+    var buttonGap: CGFloat { isShortPhone ? 10 : 12 }
+    var menuSpacing: CGFloat { isShortPhone ? 18 : 26 }
+    var titleSize: CGFloat {
+        if isTabletLike { return 64 }
+        return isNarrow ? 38 : 50
+    }
+    var scorePillWidth: CGFloat { isNarrow ? 86 : 96 }
+    var statFontSize: CGFloat { isShortPhone ? 15 : 17 }
+    var statVerticalPadding: CGFloat { isShortPhone ? 12 : 14 }
+
+    var menuBoardSize: CGFloat {
+        let availableWidth = safeWidth - (sidePadding * 2)
+        let availableHeight = safeHeight * (isShortPhone ? 0.28 : 0.34)
+        return min(availableWidth, availableHeight, isTabletLike ? 360 : 330)
+    }
+
+    var gameBoardSize: CGFloat {
+        let topRegion = topPadding + 52
+        let bottomRegion = bottomPadding + (isShortPhone ? 108 : 132)
+        let availableHeight = safeHeight - topRegion - bottomRegion - (verticalGap * 2)
+        let availableWidth = safeWidth - (sidePadding * 2)
+        let cap: CGFloat = isTabletLike ? 520 : 430
+        return min(availableWidth, availableHeight, cap)
     }
 }
 
