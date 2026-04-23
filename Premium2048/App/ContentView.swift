@@ -8,6 +8,7 @@ struct ContentView: View {
 
     @StateObject private var viewModel = GameViewModel()
     @State private var screen: Screen = .menu
+    @State private var showingGameMenu = false
 
     private var palette: PremiumPalette {
         PremiumTheme.palette(for: viewModel.settings.selectedTheme)
@@ -19,6 +20,7 @@ struct ContentView: View {
 
             ZStack {
                 backgroundLayer(metrics: metrics)
+                    .ignoresSafeArea()
 
                 switch screen {
                 case .menu:
@@ -37,7 +39,6 @@ struct ContentView: View {
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
-        .ignoresSafeArea()
         .sheet(isPresented: $viewModel.showingSettings) {
             settingsSheet
                 .presentationDetents([.medium, .large])
@@ -48,6 +49,10 @@ struct ContentView: View {
         }
         .sheet(isPresented: $viewModel.showingHowToPlay) {
             howToPlaySheet
+                .presentationDetents([.medium, .large])
+        }
+        .sheet(isPresented: $showingGameMenu) {
+            gameMenuSheet
                 .presentationDetents([.medium, .large])
         }
     }
@@ -185,98 +190,92 @@ struct ContentView: View {
     private func gameScreen(metrics: LayoutMetrics) -> some View {
         VStack(spacing: 0) {
             HStack(spacing: metrics.buttonGap) {
-                iconButton(systemImage: "house.fill") {
+                iconButton(systemImage: "house.fill", size: metrics.iconButtonSize) {
                     viewModel.abandonCurrentGame()
                     screen = .menu
                 }
 
                 VStack(alignment: .leading, spacing: 2) {
                     Text("Current Run")
-                        .font(.system(size: 14, weight: .bold, design: .rounded))
+                        .font(.system(size: metrics.gameEyebrowSize, weight: .bold, design: .rounded))
                         .foregroundStyle(palette.textSecondary)
                     Text(viewModel.sessionSummaryTitle)
-                        .font(.system(size: 24, weight: .black, design: .rounded))
+                        .font(.system(size: metrics.gameTitleSize, weight: .black, design: .rounded))
                         .foregroundStyle(palette.textPrimary)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.7)
                 }
 
                 Spacer(minLength: 12)
 
-                iconButton(systemImage: "questionmark.circle") {
-                    viewModel.showingHowToPlay = true
+                iconButton(systemImage: "line.3.horizontal", size: metrics.iconButtonSize) {
+                    showingGameMenu = true
                 }
             }
-            .padding(.horizontal, metrics.sidePadding)
+            .frame(height: metrics.headerHeight)
+            .padding(.horizontal, metrics.headerSidePadding)
             .padding(.top, metrics.topPadding)
 
-            ScrollView(.vertical, showsIndicators: false) {
-                VStack(spacing: metrics.sectionGap) {
+            VStack(spacing: 0) {
+                HStack(spacing: metrics.buttonGap) {
+                    scoreCard(title: "Score", value: viewModel.score, highlight: true, metrics: metrics)
+                    scoreCard(title: "Best", value: viewModel.bestScore, highlight: false, metrics: metrics)
+                }
+                .padding(.horizontal, metrics.headerSidePadding)
+
+                BoardView(
+                    board: viewModel.board,
+                    palette: palette,
+                    movePresentation: viewModel.movePresentation,
+                    hintedDirection: viewModel.hintState?.direction
+                )
+                .frame(width: metrics.gameBoardSize, height: metrics.gameBoardSize)
+                .frame(maxWidth: .infinity)
+                .padding(.top, metrics.boardTopSpacing)
+                .padding(.bottom, metrics.boardBottomSpacing)
+                .padding(.horizontal, metrics.boardSidePadding)
+                .contentShape(Rectangle())
+                .gesture(
+                    DragGesture(minimumDistance: 14)
+                        .onEnded(handleDrag)
+                )
+
+                VStack(spacing: metrics.buttonGap) {
                     HStack(spacing: metrics.buttonGap) {
-                        scoreCard(title: "Score", value: viewModel.score, highlight: true, metrics: metrics)
-                        scoreCard(title: "Best", value: viewModel.bestScore, highlight: false, metrics: metrics)
-                    }
-
-                    BoardView(
-                        board: viewModel.board,
-                        palette: palette,
-                        movePresentation: viewModel.movePresentation,
-                        hintedDirection: viewModel.hintState?.direction
-                    )
-                    .frame(width: metrics.gameBoardSize, height: metrics.gameBoardSize)
-                    .frame(maxWidth: .infinity)
-                    .contentShape(Rectangle())
-                    .gesture(
-                        DragGesture(minimumDistance: 14)
-                            .onEnded(handleDrag)
-                    )
-
-                    if let hintState = viewModel.hintState {
-                        helperPanel(
-                            title: "Suggested Move: \(hintState.direction.label)",
-                            description: "Projected +\(hintState.predictedScoreGain) score with \(hintState.emptyCellCount) empty cells after the move.",
-                            icon: "sparkles",
-                            metrics: metrics
-                        )
-                    } else {
-                        helperPanel(
-                            title: "Board Rhythm",
-                            description: viewModel.sessionSummarySubtitle,
-                            icon: "waveform.path.ecg",
-                            metrics: metrics
-                        )
-                    }
-
-                    HStack(spacing: metrics.buttonGap) {
-                        tertiaryButton(title: "Undo", systemImage: "arrow.uturn.backward", isDisabled: !viewModel.canUndo) {
+                        tertiaryButton(title: "Undo", systemImage: "arrow.uturn.backward", isDisabled: !viewModel.canUndo, metrics: metrics) {
                             viewModel.undoLastMove()
                         }
-                        tertiaryButton(title: "Hint", systemImage: "scope", isDisabled: false) {
+                        .frame(height: metrics.tertiaryButtonHeight)
+
+                        tertiaryButton(title: "Hint", systemImage: "scope", isDisabled: false, metrics: metrics) {
                             viewModel.requestHint()
                         }
-                        tertiaryButton(title: "Stats", systemImage: "chart.bar", isDisabled: false) {
+                        .frame(height: metrics.tertiaryButtonHeight)
+
+                        tertiaryButton(title: "Stats", systemImage: "chart.bar", isDisabled: false, metrics: metrics) {
                             viewModel.showingStats = true
                         }
+                        .frame(height: metrics.tertiaryButtonHeight)
                     }
 
                     HStack(spacing: metrics.buttonGap) {
-                        insightCard(title: "Highest", value: "\(viewModel.highestTile)", note: "Tile reached", metrics: metrics)
-                        insightCard(title: "Streak", value: "\(viewModel.stats.currentWinStreak)", note: "Current wins", metrics: metrics)
-                        insightCard(title: "Hints", value: "\(viewModel.stats.totalHints)", note: "Used overall", metrics: metrics)
-                    }
-
-                    HStack(spacing: metrics.buttonGap) {
-                        secondaryButton(title: "New Run", systemImage: "arrow.clockwise") {
+                        secondaryButton(title: "New Run", systemImage: "arrow.clockwise", metrics: metrics) {
                             viewModel.startNewGame()
                         }
-                        secondaryButton(title: "Settings", systemImage: "gearshape.fill") {
+                        .frame(height: metrics.secondaryButtonHeight)
+
+                        secondaryButton(title: "Settings", systemImage: "gearshape.fill", metrics: metrics) {
                             viewModel.showingSettings = true
                         }
+                        .frame(height: metrics.secondaryButtonHeight)
                     }
                 }
-                .padding(.horizontal, metrics.sidePadding)
-                .padding(.top, 18)
-                .padding(.bottom, metrics.bottomPadding)
+                .padding(.horizontal, metrics.actionSidePadding)
             }
+            .padding(.top, metrics.gameContentTopPadding)
+            .padding(.bottom, metrics.bottomPadding)
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
     }
 
     private func scoreOrb(title: String, value: Int, metrics: LayoutMetrics) -> some View {
@@ -303,9 +302,9 @@ struct ContentView: View {
     }
 
     private func scoreCard(title: String, value: Int, highlight: Bool, metrics: LayoutMetrics) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: metrics.scoreCardSpacing) {
             Text(title.uppercased())
-                .font(.system(size: 12, weight: .bold, design: .rounded))
+                .font(.system(size: metrics.scoreLabelSize, weight: .bold, design: .rounded))
                 .foregroundStyle(palette.textSecondary)
                 .tracking(2)
 
@@ -320,7 +319,8 @@ struct ContentView: View {
             )
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(metrics.cardPadding)
+        .padding(metrics.scoreCardPadding)
+        .frame(height: metrics.scoreCardHeight)
         .background(
             RoundedRectangle(cornerRadius: 28, style: .continuous)
                 .fill(highlight ? palette.panelGradient : palette.boardGradient)
@@ -347,43 +347,64 @@ struct ContentView: View {
         .shadow(color: palette.glow.opacity(0.26), radius: 20, x: 0, y: 10)
     }
 
-    private func secondaryButton(title: String, systemImage: String, isProminent: Bool = false, action: @escaping () -> Void) -> some View {
-        Button(action: action) {
+    private func secondaryButton(
+        title: String,
+        systemImage: String,
+        isProminent: Bool = false,
+        metrics: LayoutMetrics? = nil,
+        action: @escaping () -> Void
+    ) -> some View {
+        let labelSize = metrics?.secondaryButtonLabelSize ?? 15
+        let verticalPadding = metrics?.secondaryButtonVerticalPadding ?? 16
+        let cornerRadius = metrics?.secondaryButtonCornerRadius ?? 24
+
+        return Button(action: action) {
             Label(title, systemImage: systemImage)
-                .font(.system(size: 15, weight: .bold, design: .rounded))
+                .font(.system(size: labelSize, weight: .bold, design: .rounded))
                 .foregroundStyle(palette.textPrimary)
                 .frame(maxWidth: .infinity)
-                .padding(.vertical, 16)
+                .padding(.vertical, verticalPadding)
         }
         .buttonStyle(.plain)
         .background(
-            RoundedRectangle(cornerRadius: 24, style: .continuous)
+            RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
                 .fill(isProminent ? palette.panelGradient : palette.boardGradient)
                 .overlay(
-                    RoundedRectangle(cornerRadius: 24, style: .continuous)
+                    RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
                         .strokeBorder(Color.white.opacity(isProminent ? 0.18 : 0.10), lineWidth: 1)
                 )
         )
     }
 
-    private func tertiaryButton(title: String, systemImage: String, isDisabled: Bool, action: @escaping () -> Void) -> some View {
-        Button(action: action) {
+    private func tertiaryButton(
+        title: String,
+        systemImage: String,
+        isDisabled: Bool,
+        metrics: LayoutMetrics? = nil,
+        action: @escaping () -> Void
+    ) -> some View {
+        let iconSize = metrics?.tertiaryButtonIconSize ?? 18
+        let labelSize = metrics?.tertiaryButtonLabelSize ?? 13
+        let verticalPadding = metrics?.tertiaryButtonVerticalPadding ?? 14
+        let cornerRadius = metrics?.tertiaryButtonCornerRadius ?? 22
+
+        return Button(action: action) {
             VStack(spacing: 8) {
                 Image(systemName: systemImage)
-                    .font(.system(size: 18, weight: .black))
+                    .font(.system(size: iconSize, weight: .black))
                 Text(title)
-                    .font(.system(size: 13, weight: .bold, design: .rounded))
+                    .font(.system(size: labelSize, weight: .bold, design: .rounded))
             }
             .foregroundStyle(palette.textPrimary)
             .frame(maxWidth: .infinity)
-            .padding(.vertical, 14)
+            .padding(.vertical, verticalPadding)
         }
         .buttonStyle(.plain)
         .background(
-            RoundedRectangle(cornerRadius: 22, style: .continuous)
+            RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
                 .fill(palette.boardGradient)
                 .overlay(
-                    RoundedRectangle(cornerRadius: 22, style: .continuous)
+                    RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
                         .strokeBorder(Color.white.opacity(0.10), lineWidth: 1)
                 )
         )
@@ -391,12 +412,12 @@ struct ContentView: View {
         .disabled(isDisabled)
     }
 
-    private func iconButton(systemImage: String, action: @escaping () -> Void) -> some View {
+    private func iconButton(systemImage: String, size: CGFloat = 52, action: @escaping () -> Void) -> some View {
         Button(action: action) {
             Image(systemName: systemImage)
-                .font(.system(size: 18, weight: .black))
+                .font(.system(size: size * 0.34, weight: .black))
                 .foregroundStyle(palette.textPrimary)
-                .frame(width: 52, height: 52)
+                .frame(width: size, height: size)
         }
         .buttonStyle(.plain)
         .background(
@@ -559,6 +580,116 @@ struct ContentView: View {
             .premiumPanel(palette: palette, cornerRadius: 34)
             .padding(.horizontal, metrics.sidePadding)
         }
+    }
+
+    private var gameMenuSheet: some View {
+        NavigationStack {
+            ScrollView(.vertical, showsIndicators: false) {
+                VStack(alignment: .leading, spacing: 18) {
+                    VStack(alignment: .leading, spacing: 14) {
+                        HStack(alignment: .top, spacing: 14) {
+                            Image(systemName: viewModel.hintState == nil ? "waveform.path.ecg" : "sparkles")
+                                .font(.system(size: 18, weight: .black))
+                                .foregroundStyle(palette.accent)
+                                .frame(width: 42, height: 42)
+                                .background(Circle().fill(Color.white.opacity(0.08)))
+
+                            VStack(alignment: .leading, spacing: 6) {
+                                Text(gameMenuTitle)
+                                    .font(.system(size: 18, weight: .bold, design: .rounded))
+                                    .foregroundStyle(palette.textPrimary)
+                                Text(gameMenuDescription)
+                                    .font(.system(size: 14, weight: .medium, design: .rounded))
+                                    .foregroundStyle(palette.textSecondary)
+                                    .fixedSize(horizontal: false, vertical: true)
+                            }
+
+                            Spacer(minLength: 0)
+                        }
+
+                        HStack(spacing: 12) {
+                            gameMenuStatCard(title: "Highest", value: "\(viewModel.highestTile)", note: "Tile reached")
+                            gameMenuStatCard(title: "Streak", value: "\(viewModel.stats.currentWinStreak)", note: "Current wins")
+                            gameMenuStatCard(title: "Hints", value: "\(viewModel.stats.totalHints)", note: "Used overall")
+                        }
+                    }
+                    .padding(20)
+                    .premiumPanel(palette: palette, cornerRadius: 28)
+
+                    Button {
+                        showingGameMenu = false
+                        Task { @MainActor in
+                            try? await Task.sleep(for: .milliseconds(150))
+                            viewModel.showingHowToPlay = true
+                        }
+                    } label: {
+                        HStack(spacing: 12) {
+                            Image(systemName: "questionmark.circle.fill")
+                                .font(.system(size: 18, weight: .black))
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text("How To Play")
+                                    .font(.system(size: 17, weight: .bold, design: .rounded))
+                                Text("Open the gameplay guide and strategy tips.")
+                                    .font(.system(size: 13, weight: .medium, design: .rounded))
+                                    .foregroundStyle(palette.textSecondary)
+                            }
+                            Spacer()
+                            Image(systemName: "arrow.up.right.square")
+                                .font(.system(size: 14, weight: .bold))
+                        }
+                        .foregroundStyle(palette.textPrimary)
+                        .padding(18)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                    }
+                    .buttonStyle(.plain)
+                    .premiumPanel(palette: palette, cornerRadius: 24)
+                }
+                .padding(20)
+            }
+            .navigationTitle("Run Menu")
+            .navigationBarTitleDisplayMode(.inline)
+        }
+    }
+
+    private var gameMenuTitle: String {
+        if let hintState = viewModel.hintState {
+            return "Suggested Move: \(hintState.direction.label)"
+        }
+        return "Board Rhythm"
+    }
+
+    private var gameMenuDescription: String {
+        if let hintState = viewModel.hintState {
+            return "Projected +\(hintState.predictedScoreGain) score with \(hintState.emptyCellCount) empty cells after the move."
+        }
+        return viewModel.sessionSummarySubtitle
+    }
+
+    private func gameMenuStatCard(title: String, value: String, note: String) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(title.uppercased())
+                .font(.system(size: 11, weight: .bold, design: .rounded))
+                .foregroundStyle(palette.textSecondary)
+                .tracking(1.5)
+            Text(value)
+                .font(.system(size: 24, weight: .black, design: .rounded))
+                .foregroundStyle(palette.textPrimary)
+                .minimumScaleFactor(0.6)
+            Text(note)
+                .font(.system(size: 12, weight: .medium, design: .rounded))
+                .foregroundStyle(palette.textSecondary)
+                .lineLimit(2)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(16)
+        .background(
+            RoundedRectangle(cornerRadius: 22, style: .continuous)
+                .fill(palette.boardGradient)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 22, style: .continuous)
+                        .strokeBorder(Color.white.opacity(0.10), lineWidth: 1)
+                )
+        )
     }
 
     private var settingsSheet: some View {
@@ -744,29 +875,71 @@ private struct LayoutMetrics {
     private var isShortPhone: Bool { safeHeight < 760 }
     private var isNarrow: Bool { safeWidth < 380 }
     private var isTabletLike: Bool { safeWidth >= 700 }
+    private var widthScale: CGFloat { clamp(safeWidth / 390, min: 0.90, max: 1.18) }
+    private var heightScale: CGFloat { clamp(safeHeight / 844, min: 0.82, max: 1.18) }
+    private var compactScale: CGFloat { clamp((widthScale * 0.62) + (heightScale * 0.38), min: 0.88, max: 1.16) }
 
-    var topPadding: CGFloat { proxy.safeAreaInsets.top + (isShortPhone ? 10 : 18) }
-    var bottomPadding: CGFloat { max(proxy.safeAreaInsets.bottom, 22) }
+    var topPadding: CGFloat { proxy.safeAreaInsets.top + clamp(safeHeight * 0.006, min: 2, max: 8) }
+    var gameContentTopPadding: CGFloat { clamp(safeHeight * 0.008, min: 4, max: 8) }
+    var bottomPadding: CGFloat { proxy.safeAreaInsets.bottom + clamp(safeHeight * 0.010, min: 8, max: 14) }
     var sidePadding: CGFloat { isTabletLike ? 36 : (isNarrow ? 16 : 22) }
-    var sectionGap: CGFloat { isShortPhone ? 16 : 22 }
-    var buttonGap: CGFloat { isShortPhone ? 10 : 12 }
-    var cardPadding: CGFloat { isShortPhone ? 18 : 22 }
+    var sectionGap: CGFloat { isShortPhone ? 10 : 14 }
+    var buttonGap: CGFloat { clamp(safeWidth * 0.028, min: 10, max: 14) }
+    var cardPadding: CGFloat { isShortPhone ? 16 : 22 }
     var smallCardPadding: CGFloat { isShortPhone ? 14 : 16 }
     var heroTitleSize: CGFloat { isTabletLike ? 72 : (isNarrow ? 46 : 58) }
     var bodySize: CGFloat { isShortPhone ? 14 : 16 }
     var orbSize: CGFloat { isTabletLike ? 118 : 96 }
     var orbValueSize: CGFloat { isTabletLike ? 34 : 28 }
-    var scoreValueSize: CGFloat { isTabletLike ? 40 : 34 }
+    var headerSidePadding: CGFloat { isTabletLike ? 40 : clamp(safeWidth * 0.042, min: 12, max: 18) }
+    var boardSidePadding: CGFloat { isTabletLike ? 24 : 0 }
+    var actionSidePadding: CGFloat { isTabletLike ? 40 : clamp(safeWidth * 0.04, min: 10, max: 16) }
+    var gameSectionGap: CGFloat { clamp(safeHeight * 0.009, min: 6, max: 10) }
+    var boardTopSpacing: CGFloat { clamp(safeHeight * 0.014, min: 10, max: 14) }
+    var boardBottomSpacing: CGFloat { clamp(safeHeight * 0.022, min: 16, max: 22) }
+    var gameEyebrowSize: CGFloat { clamp(safeWidth * 0.032, min: 11, max: 14) }
+    var gameTitleSize: CGFloat { clamp(safeWidth * 0.066, min: 21, max: 27) }
+    var iconButtonSize: CGFloat { clamp(min(safeWidth, safeHeight) * 0.108, min: 42, max: 48) }
+    var headerHeight: CGFloat { max(iconButtonSize, gameTitleSize * 1.34) }
+    var scoreLabelSize: CGFloat { clamp(11 * compactScale, min: 10.5, max: 12.5) }
+    var scoreValueSize: CGFloat { isTabletLike ? 40 : clamp(safeWidth * 0.070, min: 24, max: 28) }
+    var scoreCardPadding: CGFloat { clamp(12.5 * compactScale, min: 10, max: 13) }
+    var scoreCardSpacing: CGFloat { clamp(5 * compactScale, min: 3.5, max: 6) }
     var insightValueSize: CGFloat { isTabletLike ? 30 : 24 }
     var achievementCardWidth: CGFloat { isTabletLike ? 240 : 200 }
+    var scoreCardHeight: CGFloat { clamp(safeHeight * 0.096, min: 74, max: 88) }
+    var tertiaryButtonHeight: CGFloat { clamp(safeHeight * 0.072, min: 52, max: 62) }
+    var tertiaryButtonVerticalPadding: CGFloat { clamp(7.5 * compactScale, min: 6, max: 8.5) }
+    var tertiaryButtonIconSize: CGFloat { clamp(15 * compactScale, min: 14, max: 16.5) }
+    var tertiaryButtonLabelSize: CGFloat { clamp(11.5 * compactScale, min: 10.5, max: 12.5) }
+    var tertiaryButtonCornerRadius: CGFloat { clamp(20 * compactScale, min: 18, max: 22) }
+    var secondaryButtonHeight: CGFloat { clamp(safeHeight * 0.050, min: 42, max: 50) }
+    var secondaryButtonVerticalPadding: CGFloat { clamp(9.5 * compactScale, min: 8, max: 10.5) }
+    var secondaryButtonLabelSize: CGFloat { clamp(13.5 * compactScale, min: 12.5, max: 14.5) }
+    var secondaryButtonCornerRadius: CGFloat { clamp(22 * compactScale, min: 20, max: 24) }
+    var actionBlockHeight: CGFloat { tertiaryButtonHeight + secondaryButtonHeight + buttonGap }
 
     var menuBoardSize: CGFloat {
         min(safeWidth - (sidePadding * 2), isTabletLike ? 430 : 350)
     }
 
     var gameBoardSize: CGFloat {
-        let cap: CGFloat = isTabletLike ? 560 : 430
-        return min(safeWidth - (sidePadding * 2), cap)
+        let cap: CGFloat = isTabletLike ? 660 : 600
+        let widthLimited = min(safeWidth - (boardSidePadding * 2), cap)
+        let heightBudget = safeHeight
+            - topPadding
+            - headerHeight
+            - gameContentTopPadding
+            - scoreCardHeight
+            - boardTopSpacing
+            - boardBottomSpacing
+            - actionBlockHeight
+            - bottomPadding
+        return max(0, min(widthLimited, heightBudget))
+    }
+
+    private func clamp(_ value: CGFloat, min minValue: CGFloat, max maxValue: CGFloat) -> CGFloat {
+        Swift.max(minValue, Swift.min(maxValue, value))
     }
 }
 
