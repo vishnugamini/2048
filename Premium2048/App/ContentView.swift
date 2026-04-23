@@ -5,35 +5,37 @@ struct ContentView: View {
 
     var body: some View {
         GeometryReader { proxy in
-            let safeWidth = proxy.size.width - 40
-            let safeHeight = proxy.size.height - proxy.safeAreaInsets.top - proxy.safeAreaInsets.bottom - 52
-            let reservedHeight: CGFloat = 290
-            let boardSize = max(240, min(safeWidth, safeHeight - reservedHeight))
+            let horizontalPadding: CGFloat = 20
+            let contentWidth = proxy.size.width - (horizontalPadding * 2)
+            let boardSize = min(contentWidth, 520)
 
             ZStack {
                 PremiumTheme.background
                     .ignoresSafeArea()
 
-                VStack(spacing: 18) {
-                    topBar(compact: proxy.size.height < 760)
-                    boardHero(boardSize: boardSize)
-                    actionBar
-                    swipeHint
-                    Spacer(minLength: 0)
+                ScrollView(.vertical, showsIndicators: false) {
+                    VStack(spacing: 20) {
+                        headerSection
+                        scoreSection(compact: proxy.size.width < 390)
+                        boardSection(boardSize: boardSize)
+                        statsSection
+                        actionSection
+                        swipeHint
+                    }
+                    .padding(.horizontal, horizontalPadding)
+                    .padding(.top, proxy.safeAreaInsets.top + 12)
+                    .padding(.bottom, max(proxy.safeAreaInsets.bottom, 24))
+                    .frame(maxWidth: .infinity)
                 }
-                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-                .padding(.horizontal, 20)
-                .padding(.top, proxy.safeAreaInsets.top + 12)
-                .padding(.bottom, max(proxy.safeAreaInsets.bottom, 16))
             }
         }
         .sheet(isPresented: $viewModel.showingSettings) {
             settingsSheet
-                .presentationDetents([.fraction(0.34)])
+                .presentationDetents([.medium])
         }
         .sheet(isPresented: $viewModel.showingStats) {
             statsSheet
-                .presentationDetents([.fraction(0.34)])
+                .presentationDetents([.medium])
         }
         .overlay {
             if let overlay = viewModel.overlayState {
@@ -42,24 +44,18 @@ struct ContentView: View {
         }
     }
 
-    private func topBar(compact: Bool) -> some View {
-        VStack(alignment: .leading, spacing: 16) {
+    private var headerSection: some View {
+        VStack(alignment: .leading, spacing: 14) {
             HStack(alignment: .top) {
                 VStack(alignment: .leading, spacing: 6) {
                     Text("2048")
-                        .font(.system(size: compact ? 40 : 48, weight: .black, design: .rounded))
+                        .font(.system(size: 44, weight: .black, design: .rounded))
                         .foregroundStyle(.white)
-                    Text("A minimal puzzle, finished like a luxury object.")
-                        .font(.system(size: compact ? 14 : 15, weight: .medium, design: .rounded))
+                    Text("Luxury finish. Clean movement. One more move.")
+                        .font(.system(size: 15, weight: .medium, design: .rounded))
                         .foregroundStyle(Color.white.opacity(0.72))
                 }
-
-                Spacer()
-
-                VStack(spacing: 10) {
-                    statPill(title: "Score", value: "\(viewModel.score)")
-                    statPill(title: "Best", value: "\(viewModel.bestScore)")
-                }
+                Spacer(minLength: 12)
             }
 
             HStack(spacing: 12) {
@@ -73,46 +69,50 @@ struct ContentView: View {
         }
     }
 
-    private func boardHero(boardSize: CGFloat) -> some View {
-        VStack(spacing: 18) {
-            BoardView(board: viewModel.board)
-                .frame(width: boardSize, height: boardSize)
-                .gesture(
-                    DragGesture(minimumDistance: 20)
-                        .onEnded { value in
-                            handleDrag(value)
-                        }
-                )
+    private func scoreSection(compact: Bool) -> some View {
+        HStack(spacing: 12) {
+            statPill(title: "Score", value: "\(viewModel.score)")
+            statPill(title: "Best", value: "\(viewModel.bestScore)")
+        }
+        .frame(maxWidth: compact ? .infinity : 420, alignment: .leading)
+    }
 
-            HStack(spacing: 12) {
-                miniStat(title: "Highest Tile", value: "\(viewModel.highestTile)")
-                miniStat(title: "Games", value: "\(viewModel.stats.gamesPlayed)")
-                miniStat(title: "Moves", value: "\(viewModel.stats.totalMoves)")
-            }
+    private func boardSection(boardSize: CGFloat) -> some View {
+        BoardView(board: viewModel.board)
+            .frame(width: boardSize, height: boardSize)
+            .frame(maxWidth: .infinity)
+            .gesture(
+                DragGesture(minimumDistance: 20)
+                    .onEnded(handleDrag)
+            )
+    }
+
+    private var statsSection: some View {
+        HStack(spacing: 12) {
+            miniStat(title: "Highest Tile", value: "\(viewModel.highestTile)")
+            miniStat(title: "Games", value: "\(viewModel.stats.gamesPlayed)")
+            miniStat(title: "Moves", value: "\(viewModel.stats.totalMoves)")
         }
     }
 
-    private var actionBar: some View {
-        HStack(spacing: 12) {
+    private var actionSection: some View {
+        VStack(spacing: 12) {
             glassButton(title: "New Game", systemImage: "arrow.clockwise") {
                 viewModel.restartGame()
             }
-            .frame(maxWidth: .infinity)
 
-            glassButton(title: "Keep Going", systemImage: "sparkle") {
-                viewModel.dismissOverlay()
+            if viewModel.overlayState == .victory {
+                glassButton(title: "Keep Going", systemImage: "sparkle") {
+                    viewModel.dismissOverlay()
+                }
             }
-            .frame(maxWidth: .infinity)
-            .opacity(viewModel.overlayState == .victory ? 1 : 0.55)
-            .disabled(viewModel.overlayState != .victory)
         }
     }
 
     private var swipeHint: some View {
-        Text("Swipe anywhere on the board to move the tiles.")
+        Text("Swipe on the board to move the tiles.")
             .font(.system(size: 14, weight: .medium, design: .rounded))
             .foregroundStyle(Color.white.opacity(0.62))
-            .padding(.top, 2)
     }
 
     private func statPill(title: String, value: String) -> some View {
@@ -123,8 +123,9 @@ struct ContentView: View {
             Text(value)
                 .font(.system(size: 28, weight: .bold, design: .rounded))
                 .foregroundStyle(.white)
+                .minimumScaleFactor(0.6)
         }
-        .frame(minWidth: 104, idealWidth: 114, maxWidth: 118, alignment: .leading)
+        .frame(maxWidth: .infinity, alignment: .leading)
         .padding(14)
         .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 24, style: .continuous))
         .overlay(
@@ -141,6 +142,7 @@ struct ContentView: View {
             Text(value)
                 .font(.system(size: 18, weight: .bold, design: .rounded))
                 .foregroundStyle(.white)
+                .minimumScaleFactor(0.7)
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, 14)
@@ -157,8 +159,10 @@ struct ContentView: View {
                 .font(.system(size: 15, weight: .semibold, design: .rounded))
                 .foregroundStyle(.white)
                 .frame(maxWidth: .infinity)
-                .padding(.vertical, 14)
+                .padding(.vertical, 16)
+                .contentShape(Rectangle())
         }
+        .buttonStyle(.plain)
         .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 22, style: .continuous))
         .overlay(
             RoundedRectangle(cornerRadius: 22, style: .continuous)
