@@ -45,6 +45,7 @@ public struct GameEngine: Sendable {
             scoreGained: 0,
             totalScore: score,
             changed: true,
+            tileMotions: [],
             spawnedTile: nil,
             mergeEvents: [],
             status: status
@@ -60,6 +61,7 @@ public struct GameEngine: Sendable {
             scoreGained: computed.scoreGained,
             totalScore: score + computed.scoreGained,
             changed: computed.changed,
+            tileMotions: computed.tileMotions,
             spawnedTile: nil,
             mergeEvents: computed.mergeEvents,
             status: nextStatus
@@ -75,6 +77,7 @@ public struct GameEngine: Sendable {
                 scoreGained: 0,
                 totalScore: score,
                 changed: false,
+                tileMotions: [],
                 spawnedTile: nil,
                 mergeEvents: [],
                 status: status
@@ -91,6 +94,7 @@ public struct GameEngine: Sendable {
             scoreGained: computed.scoreGained,
             totalScore: score,
             changed: true,
+            tileMotions: computed.tileMotions,
             spawnedTile: spawnedTile,
             mergeEvents: computed.mergeEvents,
             status: status
@@ -100,6 +104,7 @@ public struct GameEngine: Sendable {
     public static func computeMove(board: BoardState, direction: MoveDirection) -> MoveResult {
         var nextBoard = board
         var mergeEvents: [MergeEvent] = []
+        var tileMotions: [TileMotion] = []
         var scoreGained = 0
         var changed = false
 
@@ -110,6 +115,7 @@ public struct GameEngine: Sendable {
 
             scoreGained += processedLine.scoreGained
             mergeEvents.append(contentsOf: processedLine.mergeEvents)
+            tileMotions.append(contentsOf: processedLine.tileMotions)
             changed = changed || processedLine.values != originalEntries.map(\.value)
 
             for (offset, position) in positions.enumerated() {
@@ -122,6 +128,7 @@ public struct GameEngine: Sendable {
             scoreGained: scoreGained,
             totalScore: scoreGained,
             changed: changed,
+            tileMotions: tileMotions,
             spawnedTile: nil,
             mergeEvents: mergeEvents,
             status: changed ? nextBoard.status() : board.status()
@@ -155,10 +162,11 @@ public struct GameEngine: Sendable {
     private static func processLine(
         entries: [(position: BoardPosition, value: Int)],
         destinationPositions: [BoardPosition]
-    ) -> (values: [Int], scoreGained: Int, mergeEvents: [MergeEvent]) {
+    ) -> (values: [Int], scoreGained: Int, mergeEvents: [MergeEvent], tileMotions: [TileMotion]) {
         let nonZeroEntries = entries.filter { $0.value != 0 }
         var mergedValues: [Int] = []
         var mergeEvents: [MergeEvent] = []
+        var tileMotions: [TileMotion] = []
         var scoreGained = 0
         var index = 0
 
@@ -170,6 +178,22 @@ public struct GameEngine: Sendable {
                 let destination = destinationPositions[mergedValues.count]
                 mergedValues.append(mergedValue)
                 scoreGained += mergedValue
+                tileMotions.append(
+                    TileMotion(
+                        source: current.position,
+                        destination: destination,
+                        value: current.value,
+                        mergedIntoDestination: true
+                    )
+                )
+                tileMotions.append(
+                    TileMotion(
+                        source: next.position,
+                        destination: destination,
+                        value: next.value,
+                        mergedIntoDestination: true
+                    )
+                )
                 mergeEvents.append(
                     MergeEvent(
                         value: mergedValue,
@@ -179,7 +203,16 @@ public struct GameEngine: Sendable {
                 )
                 index += 2
             } else {
+                let destination = destinationPositions[mergedValues.count]
                 mergedValues.append(current.value)
+                tileMotions.append(
+                    TileMotion(
+                        source: current.position,
+                        destination: destination,
+                        value: current.value,
+                        mergedIntoDestination: false
+                    )
+                )
                 index += 1
             }
         }
@@ -188,6 +221,11 @@ public struct GameEngine: Sendable {
             mergedValues.append(contentsOf: Array(repeating: 0, count: BoardState.dimension - mergedValues.count))
         }
 
-        return (values: mergedValues, scoreGained: scoreGained, mergeEvents: mergeEvents)
+        return (
+            values: mergedValues,
+            scoreGained: scoreGained,
+            mergeEvents: mergeEvents,
+            tileMotions: tileMotions
+        )
     }
 }

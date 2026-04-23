@@ -45,6 +45,29 @@ final class GameEngineTests: XCTestCase {
         XCTAssertEqual(move.board.rows[0], [4, 2, 0, 0])
         XCTAssertEqual(move.scoreGained, 4)
         XCTAssertTrue(move.changed)
+        XCTAssertEqual(
+            move.tileMotions,
+            [
+                TileMotion(
+                    source: BoardPosition(row: 0, column: 0),
+                    destination: BoardPosition(row: 0, column: 0),
+                    value: 2,
+                    mergedIntoDestination: true
+                ),
+                TileMotion(
+                    source: BoardPosition(row: 0, column: 1),
+                    destination: BoardPosition(row: 0, column: 0),
+                    value: 2,
+                    mergedIntoDestination: true
+                ),
+                TileMotion(
+                    source: BoardPosition(row: 0, column: 2),
+                    destination: BoardPosition(row: 0, column: 1),
+                    value: 2,
+                    mergedIntoDestination: false
+                ),
+            ]
+        )
     }
 
     func testSwipeLeftMergesTwoPairs() {
@@ -115,6 +138,7 @@ final class GameEngineTests: XCTestCase {
         XCTAssertFalse(result.changed)
         XCTAssertNil(result.spawnedTile)
         XCTAssertEqual(result.totalScore, 100)
+        XCTAssertEqual(result.tileMotions, [])
         XCTAssertEqual(engine.board.rows[0], [2, 4, 8, 16])
     }
 
@@ -134,13 +158,40 @@ final class GameEngineTests: XCTestCase {
         let result = engine.move(.left, using: &spawner)
 
         XCTAssertEqual(result.board.rows, [
-            [4, 4, 8, 0],
+            [4, 4, 8, 4],
             [16, 32, 64, 128],
-            [256, 512, 1024, 4],
+            [256, 512, 1024, 0],
             [0, 0, 0, 0],
         ])
         XCTAssertEqual(result.spawnedTile?.position, BoardPosition(row: 0, column: 3))
         XCTAssertEqual(result.spawnedTile?.value, 4)
+    }
+
+    func testPreviewMoveIncludesTravelPathForSimpleSlide() {
+        let preview = GameEngine(
+            board: BoardState(rows: [
+                [0, 2, 0, 0],
+                [0, 0, 0, 0],
+                [0, 0, 0, 0],
+                [0, 0, 0, 0],
+            ]),
+            score: 10,
+            status: .playing
+        ).previewMove(.left)
+
+        XCTAssertEqual(preview.totalScore, 10)
+        XCTAssertEqual(preview.board.rows[0], [2, 0, 0, 0])
+        XCTAssertEqual(
+            preview.tileMotions,
+            [
+                TileMotion(
+                    source: BoardPosition(row: 0, column: 1),
+                    destination: BoardPosition(row: 0, column: 0),
+                    value: 2,
+                    mergedIntoDestination: false
+                ),
+            ]
+        )
     }
 
     func testWinDetection() {
@@ -168,5 +219,36 @@ final class GameEngineTests: XCTestCase {
 
         XCTAssertEqual(board.status(), .lost)
         XCTAssertFalse(board.hasAvailableMoves)
+    }
+
+    func testPlayerStatsUnlocksAchievementsAndTracksWinState() {
+        var stats = PlayerStats()
+        stats.recordNewGame()
+        stats.recordMove(
+            score: 5120,
+            board: BoardState(rows: [
+                [2048, 0, 0, 0],
+                [0, 0, 0, 0],
+                [0, 0, 0, 0],
+                [0, 0, 0, 0],
+            ])
+        )
+        stats.recordGameFinished(
+            score: 5120,
+            board: BoardState(rows: [
+                [2048, 0, 0, 0],
+                [0, 0, 0, 0],
+                [0, 0, 0, 0],
+                [0, 0, 0, 0],
+            ]),
+            didWin: true
+        )
+
+        XCTAssertEqual(stats.gamesPlayed, 1)
+        XCTAssertEqual(stats.gamesWon, 1)
+        XCTAssertEqual(stats.currentWinStreak, 1)
+        XCTAssertTrue(stats.unlockedAchievementIDs.contains("tile-2048"))
+        XCTAssertTrue(stats.unlockedAchievementIDs.contains("wins-1"))
+        XCTAssertTrue(stats.unlockedAchievementIDs.contains("score-5000"))
     }
 }
