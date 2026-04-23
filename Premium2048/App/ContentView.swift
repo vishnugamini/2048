@@ -16,15 +16,12 @@ struct ContentView: View {
             switch screen {
             case .menu:
                 menuScreen
-                    .transition(.opacity.combined(with: .scale(scale: 0.985)))
             case .game:
                 gameScreen
-                    .transition(.opacity.combined(with: .move(edge: .trailing)))
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .ignoresSafeArea()
-        .animation(.spring(response: 0.34, dampingFraction: 0.88), value: screen)
         .sheet(isPresented: $viewModel.showingSettings) {
             settingsSheet
                 .presentationDetents([.medium])
@@ -44,78 +41,60 @@ struct ContentView: View {
         ZStack {
             LinearGradient(
                 colors: [
-                    Color(red: 0.05, green: 0.10, blue: 0.18),
-                    Color(red: 0.08, green: 0.19, blue: 0.31),
-                    Color(red: 0.11, green: 0.27, blue: 0.39),
+                    Color(red: 0.04, green: 0.08, blue: 0.14),
+                    Color(red: 0.08, green: 0.17, blue: 0.27),
+                    Color(red: 0.10, green: 0.22, blue: 0.34),
                 ],
                 startPoint: .topLeading,
                 endPoint: .bottomTrailing
             )
 
             Circle()
-                .fill(Color.white.opacity(0.11))
-                .blur(radius: 80)
-                .frame(width: 280, height: 280)
-                .offset(x: -130, y: -290)
+                .fill(Color.white.opacity(0.08))
+                .frame(width: 320, height: 320)
+                .blur(radius: 90)
+                .offset(x: -150, y: -320)
 
             Circle()
                 .fill(PremiumTheme.accent.opacity(0.16))
-                .blur(radius: 110)
-                .frame(width: 320, height: 320)
-                .offset(x: 150, y: 280)
+                .frame(width: 360, height: 360)
+                .blur(radius: 120)
+                .offset(x: 180, y: 340)
 
-            RoundedRectangle(cornerRadius: 120, style: .continuous)
-                .fill(Color.white.opacity(0.06))
-                .frame(width: 230, height: 620)
-                .blur(radius: 40)
+            RoundedRectangle(cornerRadius: 140, style: .continuous)
+                .fill(Color.white.opacity(0.05))
+                .frame(width: 250, height: 680)
+                .blur(radius: 50)
                 .rotationEffect(.degrees(24))
-                .offset(x: 165, y: -90)
+                .offset(x: 170, y: -50)
         }
-        .ignoresSafeArea()
     }
 
     private var menuScreen: some View {
         GeometryReader { proxy in
+            let safeTop = proxy.safeAreaInsets.top
+            let safeBottom = max(proxy.safeAreaInsets.bottom, 24)
             let sidePadding: CGFloat = 24
-            let previewSize = min(proxy.size.width - (sidePadding * 2), 330)
+            let boardSize = min(proxy.size.width - (sidePadding * 2), proxy.size.height * 0.42)
 
             VStack(spacing: 0) {
-                Spacer()
-                    .frame(height: proxy.safeAreaInsets.top + 26)
-
-                VStack(alignment: .leading, spacing: 18) {
+                HStack {
                     Text("2048")
-                        .font(.system(size: 62, weight: .black, design: .rounded))
+                        .font(.system(size: 48, weight: .black, design: .rounded))
                         .foregroundStyle(.white)
-
-                    Text("A premium take on the classic puzzle.")
-                        .font(.system(size: 22, weight: .semibold, design: .rounded))
-                        .foregroundStyle(Color.white.opacity(0.90))
-
-                    Text("Smooth motion, full-screen focus, and instant access to a new run or your current board.")
-                        .font(.system(size: 16, weight: .medium, design: .rounded))
-                        .foregroundStyle(Color.white.opacity(0.70))
-                        .fixedSize(horizontal: false, vertical: true)
+                    Spacer()
+                    scoreBadge(value: viewModel.bestScore)
                 }
                 .padding(.horizontal, sidePadding)
-                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.top, safeTop + 12)
 
-                Spacer(minLength: 22)
+                Spacer(minLength: 18)
 
                 BoardView(board: viewModel.board)
-                    .frame(width: previewSize, height: previewSize)
+                    .frame(width: boardSize, height: boardSize)
                     .frame(maxWidth: .infinity)
-                    .overlay(alignment: .bottomTrailing) {
-                        Text("Best \(viewModel.bestScore)")
-                            .font(.system(size: 14, weight: .bold, design: .rounded))
-                            .foregroundStyle(.white.opacity(0.85))
-                            .padding(.horizontal, 14)
-                            .padding(.vertical, 10)
-                            .background(.ultraThinMaterial, in: Capsule())
-                            .padding(18)
-                    }
 
-                Spacer(minLength: 22)
+                Spacer(minLength: 24)
 
                 VStack(spacing: 14) {
                     primaryButton(title: "New Game", systemImage: "sparkles") {
@@ -123,7 +102,7 @@ struct ContentView: View {
                         screen = .game
                     }
 
-                    primaryButton(title: "Continue Game", systemImage: "play.fill") {
+                    primaryButton(title: "Continue", systemImage: "play.fill") {
                         screen = .game
                     }
                     .opacity(viewModel.continueGameAvailable() ? 1 : 0.45)
@@ -139,7 +118,7 @@ struct ContentView: View {
                     }
                 }
                 .padding(.horizontal, sidePadding)
-                .padding(.bottom, max(proxy.safeAreaInsets.bottom, 26))
+                .padding(.bottom, safeBottom)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
@@ -147,76 +126,60 @@ struct ContentView: View {
 
     private var gameScreen: some View {
         GeometryReader { proxy in
-            let sidePadding: CGFloat = 20
             let safeTop = proxy.safeAreaInsets.top
-            let safeBottom = max(proxy.safeAreaInsets.bottom, 16)
+            let safeBottom = max(proxy.safeAreaInsets.bottom, 18)
+            let sidePadding: CGFloat = 18
             let width = proxy.size.width - (sidePadding * 2)
-            let availableHeight = proxy.size.height - safeTop - safeBottom - 212
-            let boardSize = min(width, max(280, availableHeight))
+            let boardSpace = proxy.size.height - safeTop - safeBottom - 178
+            let boardSize = min(width, max(280, boardSpace))
 
             VStack(spacing: 0) {
-                VStack(spacing: 14) {
-                    HStack(alignment: .top) {
-                        VStack(alignment: .leading, spacing: 6) {
-                            Text("2048")
-                                .font(.system(size: 36, weight: .black, design: .rounded))
-                                .foregroundStyle(.white)
-                            Text("Full-screen play.")
-                                .font(.system(size: 14, weight: .medium, design: .rounded))
-                                .foregroundStyle(Color.white.opacity(0.68))
-                        }
-
-                        Spacer(minLength: 12)
-
-                        HStack(spacing: 12) {
-                            statPill(title: "Score", value: "\(viewModel.score)")
-                            statPill(title: "Best", value: "\(viewModel.bestScore)")
-                        }
-                        .frame(maxWidth: 270)
+                HStack(spacing: 12) {
+                    secondaryIconButton(systemImage: "house") {
+                        viewModel.abandonCurrentGame()
+                        screen = .menu
                     }
 
-                    HStack(spacing: 12) {
-                        secondaryButton(title: "Menu", systemImage: "chevron.left") {
-                            viewModel.abandonCurrentGame()
-                            screen = .menu
-                        }
-                        secondaryButton(title: "Stats", systemImage: "chart.bar.fill") {
-                            viewModel.showingStats = true
-                        }
-                        secondaryButton(title: "Settings", systemImage: "slider.horizontal.3") {
-                            viewModel.showingSettings = true
-                        }
+                    Spacer()
+
+                    scoreCard(title: "Score", value: viewModel.score)
+                    scoreCard(title: "Best", value: viewModel.bestScore)
+
+                    secondaryIconButton(systemImage: "gearshape") {
+                        viewModel.showingSettings = true
                     }
                 }
                 .padding(.horizontal, sidePadding)
-                .padding(.top, safeTop + 8)
+                .padding(.top, safeTop + 10)
 
                 Spacer(minLength: 14)
 
                 BoardView(board: viewModel.board)
                     .frame(width: boardSize, height: boardSize)
                     .frame(maxWidth: .infinity)
+                    .contentShape(Rectangle())
                     .gesture(
-                        DragGesture(minimumDistance: 18)
+                        DragGesture(minimumDistance: 16)
                             .onEnded(handleDrag)
                     )
 
-                Spacer(minLength: 18)
+                Spacer(minLength: 14)
 
                 VStack(spacing: 14) {
                     HStack(spacing: 12) {
-                        miniStat(title: "Highest", value: "\(viewModel.highestTile)")
-                        miniStat(title: "Games", value: "\(viewModel.stats.gamesPlayed)")
-                        miniStat(title: "Moves", value: "\(viewModel.stats.totalMoves)")
+                        statChip(value: viewModel.highestTile)
+                        statChip(value: viewModel.stats.gamesPlayed)
+                        statChip(value: viewModel.stats.totalMoves)
                     }
 
-                    primaryButton(title: "New Game", systemImage: "arrow.clockwise") {
-                        viewModel.startNewGame()
+                    HStack(spacing: 12) {
+                        secondaryButton(title: "Stats", systemImage: "chart.bar.fill") {
+                            viewModel.showingStats = true
+                        }
+                        primaryButton(title: "New Game", systemImage: "arrow.clockwise") {
+                            viewModel.startNewGame()
+                        }
                     }
-
-                    Text("Swipe across the board to move the tiles.")
-                        .font(.system(size: 14, weight: .medium, design: .rounded))
-                        .foregroundStyle(Color.white.opacity(0.66))
                 }
                 .padding(.horizontal, sidePadding)
                 .padding(.bottom, safeBottom)
@@ -225,50 +188,56 @@ struct ContentView: View {
         }
     }
 
-    private func statPill(title: String, value: String) -> some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text(title.uppercased())
-                .font(.system(size: 11, weight: .bold, design: .rounded))
+    private func scoreBadge(value: Int) -> some View {
+        Text("Best \(value)")
+            .font(.system(size: 16, weight: .bold, design: .rounded))
+            .foregroundStyle(.white)
+            .padding(.horizontal, 16)
+            .padding(.vertical, 10)
+            .background(.ultraThinMaterial, in: Capsule())
+            .overlay(
+                Capsule().strokeBorder(Color.white.opacity(0.12), lineWidth: 1)
+            )
+    }
+
+    private func scoreCard(title: String, value: Int) -> some View {
+        VStack(alignment: .leading, spacing: 3) {
+            Text(title)
+                .font(.system(size: 10, weight: .bold, design: .rounded))
                 .foregroundStyle(Color.white.opacity(0.58))
-            Text(value)
-                .font(.system(size: 24, weight: .bold, design: .rounded))
+            Text("\(value)")
+                .font(.system(size: 22, weight: .bold, design: .rounded))
                 .foregroundStyle(.white)
                 .minimumScaleFactor(0.55)
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
+        .frame(width: 92, alignment: .leading)
         .padding(.horizontal, 14)
-        .padding(.vertical, 12)
-        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 24, style: .continuous))
+        .padding(.vertical, 11)
+        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 22, style: .continuous))
         .overlay(
-            RoundedRectangle(cornerRadius: 24, style: .continuous)
+            RoundedRectangle(cornerRadius: 22, style: .continuous)
                 .strokeBorder(Color.white.opacity(0.11), lineWidth: 1)
         )
     }
 
-    private func miniStat(title: String, value: String) -> some View {
-        VStack(spacing: 6) {
-            Text(title)
-                .font(.system(size: 11, weight: .bold, design: .rounded))
-                .foregroundStyle(Color.white.opacity(0.58))
-            Text(value)
-                .font(.system(size: 18, weight: .bold, design: .rounded))
-                .foregroundStyle(.white)
-                .minimumScaleFactor(0.7)
-        }
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, 14)
-        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 22, style: .continuous))
-        .overlay(
-            RoundedRectangle(cornerRadius: 22, style: .continuous)
-                .strokeBorder(Color.white.opacity(0.10), lineWidth: 1)
-        )
+    private func statChip(value: Int) -> some View {
+        Text("\(value)")
+            .font(.system(size: 17, weight: .bold, design: .rounded))
+            .foregroundStyle(.white)
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 14)
+            .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 22, style: .continuous))
+            .overlay(
+                RoundedRectangle(cornerRadius: 22, style: .continuous)
+                    .strokeBorder(Color.white.opacity(0.10), lineWidth: 1)
+            )
     }
 
     private func primaryButton(title: String, systemImage: String, action: @escaping () -> Void) -> some View {
         Button(action: action) {
             Label(title, systemImage: systemImage)
                 .font(.system(size: 17, weight: .bold, design: .rounded))
-                .foregroundStyle(Color(red: 0.06, green: 0.09, blue: 0.16))
+                .foregroundStyle(Color(red: 0.05, green: 0.08, blue: 0.14))
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 18)
                 .contentShape(Rectangle())
@@ -276,10 +245,7 @@ struct ContentView: View {
         .buttonStyle(.plain)
         .background(
             LinearGradient(
-                colors: [
-                    Color(red: 0.90, green: 0.95, blue: 1.0),
-                    PremiumTheme.accent,
-                ],
+                colors: [Color(red: 0.93, green: 0.97, blue: 1.0), PremiumTheme.accent],
                 startPoint: .topLeading,
                 endPoint: .bottomTrailing
             ),
@@ -305,19 +271,30 @@ struct ContentView: View {
         )
     }
 
+    private func secondaryIconButton(systemImage: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Image(systemName: systemImage)
+                .font(.system(size: 18, weight: .bold))
+                .foregroundStyle(.white)
+                .frame(width: 52, height: 52)
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: 18, style: .continuous)
+                .strokeBorder(Color.white.opacity(0.11), lineWidth: 1)
+        )
+    }
+
     private func overlayView(for overlay: GameViewModel.OverlayState) -> some View {
         ZStack {
-            Color.black.opacity(0.34).ignoresSafeArea()
+            Color.black.opacity(0.36).ignoresSafeArea()
 
             VStack(spacing: 14) {
-                Text(overlay == .victory ? "2048 Reached" : "No More Moves")
+                Text(overlay == .victory ? "2048" : "Game Over")
                     .font(.system(size: 34, weight: .black, design: .rounded))
                     .foregroundStyle(.white)
-
-                Text(overlay == .victory ? "You made it. Start fresh or head back to the menu." : "This run is over. Start another or return to the menu.")
-                    .font(.system(size: 16, weight: .medium, design: .rounded))
-                    .multilineTextAlignment(.center)
-                    .foregroundStyle(Color.white.opacity(0.72))
 
                 HStack(spacing: 12) {
                     secondaryButton(title: "Menu", systemImage: "house") {
