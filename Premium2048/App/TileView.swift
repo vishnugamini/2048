@@ -16,13 +16,23 @@ struct TileView: View {
 
     var body: some View {
         ZStack {
-            RoundedRectangle(cornerRadius: size * 0.25, style: .continuous)
+            RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
                 .fill(palette.tileGradient(for: value))
                 .overlay(
-                    RoundedRectangle(cornerRadius: size * 0.25, style: .continuous)
+                    RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
                         .strokeBorder(borderColor, lineWidth: value == 0 ? 1 : 1.2)
                 )
-                .shadow(color: glowColor.opacity(value == 0 ? 0.0 : 0.22), radius: size * 0.14, x: 0, y: size * 0.07)
+                .overlay(
+                    RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+                        .fill(
+                            LinearGradient(
+                                colors: [Color.white.opacity(value == 0 ? 0.04 : 0.16), .clear],
+                                startPoint: .topLeading,
+                                endPoint: .center
+                            )
+                        )
+                )
+                .shadow(color: glowColor.opacity(value == 0 ? 0.0 : 0.28), radius: size * 0.12, x: 0, y: size * 0.06)
 
             if value != 0 {
                 VStack(spacing: size * 0.02) {
@@ -53,6 +63,10 @@ struct TileView: View {
         }
     }
 
+    private var cornerRadius: CGFloat {
+        value == 0 ? size * 0.18 : size * 0.20
+    }
+
     private var scaleEffect: CGFloat {
         switch emphasis {
         case .idle: return 1
@@ -69,7 +83,7 @@ struct TileView: View {
         case .merged, .spawned:
             return Color.white.opacity(0.28)
         case .idle:
-            return Color.white.opacity(value == 0 ? 0.05 : 0.16)
+            return Color.white.opacity(value == 0 ? 0.08 : 0.18)
         }
     }
 

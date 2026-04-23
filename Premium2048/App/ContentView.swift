@@ -188,91 +188,130 @@ struct ContentView: View {
     }
 
     private func gameScreen(metrics: LayoutMetrics) -> some View {
-        VStack(spacing: 0) {
-            HStack(spacing: metrics.buttonGap) {
-                iconButton(systemImage: "house.fill", size: metrics.iconButtonSize) {
-                    viewModel.abandonCurrentGame()
-                    screen = .menu
+        VStack(spacing: metrics.gameSectionGap) {
+            VStack(spacing: metrics.headerPanelGap) {
+                HStack(spacing: metrics.buttonGap) {
+                    iconButton(systemImage: "house.fill", size: metrics.iconButtonSize) {
+                        viewModel.abandonCurrentGame()
+                        screen = .menu
+                    }
+
+                    VStack(alignment: .leading, spacing: metrics.gameHeaderTextSpacing) {
+                        Text("Current Run")
+                            .font(.system(size: metrics.gameEyebrowSize, weight: .bold, design: .rounded))
+                            .foregroundStyle(palette.accentSecondary.opacity(0.86))
+                            .tracking(1.6)
+                        Text(viewModel.sessionSummaryTitle)
+                            .font(.system(size: metrics.gameTitleSize, weight: .black, design: .rounded))
+                            .foregroundStyle(palette.textPrimary)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.62)
+                    }
+
+                    Spacer(minLength: 12)
+
+                    iconButton(systemImage: "line.3.horizontal", size: metrics.iconButtonSize) {
+                        showingGameMenu = true
+                    }
                 }
+                .frame(height: metrics.headerHeight)
 
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("Current Run")
-                        .font(.system(size: metrics.gameEyebrowSize, weight: .bold, design: .rounded))
-                        .foregroundStyle(palette.textSecondary)
-                    Text(viewModel.sessionSummaryTitle)
-                        .font(.system(size: metrics.gameTitleSize, weight: .black, design: .rounded))
-                        .foregroundStyle(palette.textPrimary)
-                        .lineLimit(1)
-                        .minimumScaleFactor(0.7)
-                }
-
-                Spacer(minLength: 12)
-
-                iconButton(systemImage: "line.3.horizontal", size: metrics.iconButtonSize) {
-                    showingGameMenu = true
-                }
-            }
-            .frame(height: metrics.headerHeight)
-            .padding(.horizontal, metrics.headerSidePadding)
-            .padding(.top, metrics.topPadding)
-
-            VStack(spacing: 0) {
                 HStack(spacing: metrics.buttonGap) {
                     scoreCard(title: "Score", value: viewModel.score, highlight: true, metrics: metrics)
                     scoreCard(title: "Best", value: viewModel.bestScore, highlight: false, metrics: metrics)
                 }
-                .padding(.horizontal, metrics.headerSidePadding)
-
-                BoardView(
-                    board: viewModel.board,
-                    palette: palette,
-                    movePresentation: viewModel.movePresentation,
-                    hintedDirection: viewModel.hintState?.direction
-                )
-                .frame(width: metrics.gameBoardSize, height: metrics.gameBoardSize)
-                .frame(maxWidth: .infinity)
-                .padding(.top, metrics.boardTopSpacing)
-                .padding(.bottom, metrics.boardBottomSpacing)
-                .padding(.horizontal, metrics.boardSidePadding)
-                .contentShape(Rectangle())
-                .gesture(
-                    DragGesture(minimumDistance: 14)
-                        .onEnded(handleDrag)
-                )
-
-                VStack(spacing: metrics.buttonGap) {
-                    HStack(spacing: metrics.buttonGap) {
-                        tertiaryButton(title: "Undo", systemImage: "arrow.uturn.backward", isDisabled: !viewModel.canUndo, metrics: metrics) {
-                            viewModel.undoLastMove()
-                        }
-                        .frame(height: metrics.tertiaryButtonHeight)
-
-                        tertiaryButton(title: "Hint", systemImage: "scope", isDisabled: false, metrics: metrics) {
-                            viewModel.requestHint()
-                        }
-                        .frame(height: metrics.tertiaryButtonHeight)
-
-                        tertiaryButton(title: "Stats", systemImage: "chart.bar", isDisabled: false, metrics: metrics) {
-                            viewModel.showingStats = true
-                        }
-                        .frame(height: metrics.tertiaryButtonHeight)
-                    }
-
-                    HStack(spacing: metrics.buttonGap) {
-                        secondaryButton(title: "New Run", systemImage: "arrow.clockwise", metrics: metrics) {
-                            viewModel.startNewGame()
-                        }
-                        .frame(height: metrics.secondaryButtonHeight)
-
-                        secondaryButton(title: "Settings", systemImage: "gearshape.fill", metrics: metrics) {
-                            viewModel.showingSettings = true
-                        }
-                        .frame(height: metrics.secondaryButtonHeight)
-                    }
-                }
-                .padding(.horizontal, metrics.actionSidePadding)
             }
-            .padding(.top, metrics.gameContentTopPadding)
+            .padding(metrics.headerPanelPadding)
+            .background(
+                RoundedRectangle(cornerRadius: metrics.headerPanelCornerRadius, style: .continuous)
+                    .fill(
+                        LinearGradient(
+                            colors: [
+                                Color.white.opacity(0.16),
+                                palette.accent.opacity(0.08),
+                                Color.white.opacity(0.06),
+                            ],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+                    .overlay(
+                        RoundedRectangle(cornerRadius: metrics.headerPanelCornerRadius, style: .continuous)
+                            .strokeBorder(Color.white.opacity(0.16), lineWidth: 1)
+                    )
+                    .shadow(color: palette.shadow.opacity(0.28), radius: 22, x: 0, y: 14)
+            )
+            .padding(.horizontal, metrics.headerSidePadding)
+            .padding(.top, metrics.topPadding)
+
+            BoardView(
+                board: viewModel.board,
+                palette: palette,
+                movePresentation: viewModel.movePresentation,
+                hintedDirection: viewModel.hintState?.direction
+            )
+            .frame(width: metrics.gameBoardSize, height: metrics.gameBoardSize)
+            .frame(maxWidth: .infinity)
+            .padding(.top, metrics.boardTopSpacing)
+            .padding(.bottom, metrics.boardBottomSpacing)
+            .padding(.horizontal, metrics.boardSidePadding)
+            .contentShape(Rectangle())
+            .gesture(
+                DragGesture(minimumDistance: 14)
+                    .onEnded(handleDrag)
+            )
+
+            VStack(spacing: metrics.actionRowGap) {
+                HStack(spacing: metrics.buttonGap) {
+                    secondaryButton(title: "New Run", systemImage: "arrow.clockwise", isProminent: true, metrics: metrics) {
+                        viewModel.startNewGame()
+                    }
+                    .frame(height: metrics.primaryActionHeight)
+
+                    tertiaryButton(title: "Hint", systemImage: "scope", isDisabled: false, isProminent: true, metrics: metrics) {
+                        viewModel.requestHint()
+                    }
+                    .frame(width: metrics.featureActionWidth, height: metrics.primaryActionHeight)
+                }
+
+                HStack(spacing: metrics.buttonGap) {
+                    tertiaryButton(title: "Undo", systemImage: "arrow.uturn.backward", isDisabled: !viewModel.canUndo, metrics: metrics) {
+                        viewModel.undoLastMove()
+                    }
+                    .frame(height: metrics.utilityActionHeight)
+
+                    tertiaryButton(title: "Stats", systemImage: "chart.bar", isDisabled: false, metrics: metrics) {
+                        viewModel.showingStats = true
+                    }
+                    .frame(height: metrics.utilityActionHeight)
+
+                    tertiaryButton(title: "Settings", systemImage: "gearshape.fill", isDisabled: false, metrics: metrics) {
+                        viewModel.showingSettings = true
+                    }
+                    .frame(height: metrics.utilityActionHeight)
+                }
+            }
+            .padding(metrics.actionDockPadding)
+            .background(
+                RoundedRectangle(cornerRadius: metrics.actionDockCornerRadius, style: .continuous)
+                    .fill(
+                        LinearGradient(
+                            colors: [
+                                Color.white.opacity(0.105),
+                                palette.accent.opacity(0.052),
+                                Color.black.opacity(0.075),
+                            ],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+                    .overlay(
+                        RoundedRectangle(cornerRadius: metrics.actionDockCornerRadius, style: .continuous)
+                            .strokeBorder(Color.white.opacity(0.12), lineWidth: 1)
+                    )
+                    .shadow(color: palette.shadow.opacity(0.26), radius: 18, x: 0, y: 12)
+            )
+            .padding(.horizontal, metrics.actionSidePadding)
             .padding(.bottom, metrics.bottomPadding)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
@@ -303,10 +342,16 @@ struct ContentView: View {
 
     private func scoreCard(title: String, value: Int, highlight: Bool, metrics: LayoutMetrics) -> some View {
         VStack(alignment: .leading, spacing: metrics.scoreCardSpacing) {
-            Text(title.uppercased())
-                .font(.system(size: metrics.scoreLabelSize, weight: .bold, design: .rounded))
-                .foregroundStyle(palette.textSecondary)
-                .tracking(2)
+            HStack(spacing: 6) {
+                Circle()
+                    .fill(highlight ? palette.accent : palette.accentSecondary)
+                    .frame(width: 6, height: 6)
+
+                Text(title.uppercased())
+                    .font(.system(size: metrics.scoreLabelSize, weight: .bold, design: .rounded))
+                    .foregroundStyle(palette.textSecondary)
+                    .tracking(1.6)
+            }
 
             Text("\(value)")
                 .font(.system(size: metrics.scoreValueSize, weight: .black, design: .rounded))
@@ -315,18 +360,19 @@ struct ContentView: View {
 
             progressBar(
                 value: highlight ? progressToTarget(tile: viewModel.highestTile) : min(Double(viewModel.score) / Double(max(viewModel.bestScore, 1)), 1),
-                tint: highlight ? palette.accent : palette.accentSecondary
+                tint: highlight ? palette.accent : palette.accentSecondary,
+                height: metrics.scoreProgressHeight
             )
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(metrics.scoreCardPadding)
         .frame(height: metrics.scoreCardHeight)
         .background(
-            RoundedRectangle(cornerRadius: 28, style: .continuous)
-                .fill(highlight ? palette.panelGradient : palette.boardGradient)
+            RoundedRectangle(cornerRadius: metrics.scoreCardCornerRadius, style: .continuous)
+                .fill(Color.black.opacity(highlight ? 0.16 : 0.11))
                 .overlay(
-                    RoundedRectangle(cornerRadius: 28, style: .continuous)
-                        .strokeBorder(Color.white.opacity(highlight ? 0.16 : 0.10), lineWidth: 1)
+                    RoundedRectangle(cornerRadius: metrics.scoreCardCornerRadius, style: .continuous)
+                        .strokeBorder(Color.white.opacity(highlight ? 0.18 : 0.12), lineWidth: 1)
                 )
         )
     }
@@ -355,57 +401,81 @@ struct ContentView: View {
         action: @escaping () -> Void
     ) -> some View {
         let labelSize = metrics?.secondaryButtonLabelSize ?? 15
-        let verticalPadding = metrics?.secondaryButtonVerticalPadding ?? 16
         let cornerRadius = metrics?.secondaryButtonCornerRadius ?? 24
 
         return Button(action: action) {
-            Label(title, systemImage: systemImage)
-                .font(.system(size: labelSize, weight: .bold, design: .rounded))
-                .foregroundStyle(palette.textPrimary)
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, verticalPadding)
+            HStack(spacing: 8) {
+                Image(systemName: systemImage)
+                    .font(.system(size: labelSize + 3, weight: .black))
+                Text(title)
+                    .font(.system(size: labelSize, weight: .black, design: .rounded))
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.72)
+            }
+            .foregroundStyle(isProminent ? Color.black.opacity(0.78) : palette.textPrimary)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .padding(.horizontal, 14)
         }
         .buttonStyle(.plain)
         .background(
             RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
-                .fill(isProminent ? palette.panelGradient : palette.boardGradient)
+                .fill(isProminent ? palette.heroGradient : palette.boardGradient)
                 .overlay(
                     RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
-                        .strokeBorder(Color.white.opacity(isProminent ? 0.18 : 0.10), lineWidth: 1)
+                        .strokeBorder(Color.white.opacity(isProminent ? 0.22 : 0.10), lineWidth: 1)
                 )
         )
+        .shadow(color: isProminent ? palette.glow.opacity(0.22) : .clear, radius: 16, x: 0, y: 8)
     }
 
     private func tertiaryButton(
         title: String,
         systemImage: String,
         isDisabled: Bool,
+        isProminent: Bool = false,
         metrics: LayoutMetrics? = nil,
         action: @escaping () -> Void
     ) -> some View {
         let iconSize = metrics?.tertiaryButtonIconSize ?? 18
         let labelSize = metrics?.tertiaryButtonLabelSize ?? 13
-        let verticalPadding = metrics?.tertiaryButtonVerticalPadding ?? 14
         let cornerRadius = metrics?.tertiaryButtonCornerRadius ?? 22
 
         return Button(action: action) {
-            VStack(spacing: 8) {
+            VStack(spacing: 4) {
                 Image(systemName: systemImage)
                     .font(.system(size: iconSize, weight: .black))
                 Text(title)
                     .font(.system(size: labelSize, weight: .bold, design: .rounded))
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.72)
             }
             .foregroundStyle(palette.textPrimary)
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, verticalPadding)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .padding(.horizontal, 8)
         }
         .buttonStyle(.plain)
         .background(
             RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
-                .fill(palette.boardGradient)
+                .fill(
+                    isProminent
+                    ? LinearGradient(
+                        colors: [
+                            Color.white.opacity(0.20),
+                            palette.accentSecondary.opacity(0.18),
+                            Color.white.opacity(0.08),
+                        ],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                    : LinearGradient(
+                        colors: [Color.white.opacity(0.115), Color.white.opacity(0.052)],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                )
                 .overlay(
                     RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
-                        .strokeBorder(Color.white.opacity(0.10), lineWidth: 1)
+                        .strokeBorder(Color.white.opacity(isProminent ? 0.20 : 0.10), lineWidth: 1)
                 )
         )
         .opacity(isDisabled ? 0.35 : 1)
@@ -422,10 +492,16 @@ struct ContentView: View {
         .buttonStyle(.plain)
         .background(
             RoundedRectangle(cornerRadius: 18, style: .continuous)
-                .fill(palette.boardGradient)
+                .fill(
+                    LinearGradient(
+                        colors: [Color.white.opacity(0.15), Color.white.opacity(0.07)],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                )
                 .overlay(
                     RoundedRectangle(cornerRadius: 18, style: .continuous)
-                        .strokeBorder(Color.white.opacity(0.12), lineWidth: 1)
+                        .strokeBorder(Color.white.opacity(0.16), lineWidth: 1)
                 )
         )
     }
@@ -825,7 +901,7 @@ struct ContentView: View {
         }
     }
 
-    private func progressBar(value: Double, tint: Color) -> some View {
+    private func progressBar(value: Double, tint: Color, height: CGFloat = 10) -> some View {
         GeometryReader { proxy in
             ZStack(alignment: .leading) {
                 Capsule()
@@ -835,7 +911,7 @@ struct ContentView: View {
                     .frame(width: max(12, proxy.size.width * value))
             }
         }
-        .frame(height: 10)
+        .frame(height: height)
     }
 
     private func sectionLabel(_ title: String) -> some View {
@@ -880,7 +956,6 @@ private struct LayoutMetrics {
     private var compactScale: CGFloat { clamp((widthScale * 0.62) + (heightScale * 0.38), min: 0.88, max: 1.16) }
 
     var topPadding: CGFloat { proxy.safeAreaInsets.top + clamp(safeHeight * 0.006, min: 2, max: 8) }
-    var gameContentTopPadding: CGFloat { clamp(safeHeight * 0.008, min: 4, max: 8) }
     var bottomPadding: CGFloat { proxy.safeAreaInsets.bottom + clamp(safeHeight * 0.010, min: 8, max: 14) }
     var sidePadding: CGFloat { isTabletLike ? 36 : (isNarrow ? 16 : 22) }
     var sectionGap: CGFloat { isShortPhone ? 10 : 14 }
@@ -893,31 +968,47 @@ private struct LayoutMetrics {
     var orbValueSize: CGFloat { isTabletLike ? 34 : 28 }
     var headerSidePadding: CGFloat { isTabletLike ? 40 : clamp(safeWidth * 0.042, min: 12, max: 18) }
     var boardSidePadding: CGFloat { isTabletLike ? 24 : 0 }
-    var actionSidePadding: CGFloat { isTabletLike ? 40 : clamp(safeWidth * 0.04, min: 10, max: 16) }
-    var gameSectionGap: CGFloat { clamp(safeHeight * 0.009, min: 6, max: 10) }
-    var boardTopSpacing: CGFloat { clamp(safeHeight * 0.014, min: 10, max: 14) }
-    var boardBottomSpacing: CGFloat { clamp(safeHeight * 0.022, min: 16, max: 22) }
-    var gameEyebrowSize: CGFloat { clamp(safeWidth * 0.032, min: 11, max: 14) }
-    var gameTitleSize: CGFloat { clamp(safeWidth * 0.066, min: 21, max: 27) }
-    var iconButtonSize: CGFloat { clamp(min(safeWidth, safeHeight) * 0.108, min: 42, max: 48) }
-    var headerHeight: CGFloat { max(iconButtonSize, gameTitleSize * 1.34) }
+    var actionSidePadding: CGFloat { isTabletLike ? 40 : clamp(safeWidth * 0.038, min: 10, max: 15) }
+    var gameSectionGap: CGFloat { clamp(safeHeight * 0.014, min: 10, max: 14) }
+    var headerPanelGap: CGFloat { clamp(safeHeight * 0.010, min: 8, max: 12) }
+    var headerPanelPadding: CGFloat { clamp(12 * compactScale, min: 10, max: 14) }
+    var headerPanelCornerRadius: CGFloat { clamp(28 * compactScale, min: 24, max: 32) }
+    var gameHeaderTextSpacing: CGFloat { clamp(2.4 * compactScale, min: 1.5, max: 3) }
+    var gameHeaderBottomSpacing: CGFloat { clamp(safeHeight * 0.004, min: 2, max: 6) }
+    var boardTopSpacing: CGFloat { clamp(safeHeight * 0.004, min: 2, max: 5) }
+    var boardBottomSpacing: CGFloat { clamp(safeHeight * 0.010, min: 8, max: 12) }
+    var actionRowGap: CGFloat { clamp(safeHeight * 0.009, min: 7, max: 10) }
+    var gameEyebrowSize: CGFloat { clamp(safeWidth * 0.030, min: 10.5, max: 13) }
+    var gameTitleSize: CGFloat { clamp(safeWidth * 0.059, min: 19, max: 24) }
+    var iconButtonSize: CGFloat { clamp(min(safeWidth, safeHeight) * 0.102, min: 40, max: 46) }
+    var headerHeight: CGFloat { max(iconButtonSize, gameTitleSize * 1.22) }
     var scoreLabelSize: CGFloat { clamp(11 * compactScale, min: 10.5, max: 12.5) }
-    var scoreValueSize: CGFloat { isTabletLike ? 40 : clamp(safeWidth * 0.070, min: 24, max: 28) }
-    var scoreCardPadding: CGFloat { clamp(12.5 * compactScale, min: 10, max: 13) }
-    var scoreCardSpacing: CGFloat { clamp(5 * compactScale, min: 3.5, max: 6) }
+    var scoreValueSize: CGFloat { isTabletLike ? 38 : clamp(safeWidth * 0.064, min: 22, max: 26) }
+    var scoreCardPadding: CGFloat { clamp(11.5 * compactScale, min: 9, max: 12) }
+    var scoreCardSpacing: CGFloat { clamp(4.5 * compactScale, min: 3, max: 5.5) }
+    var scoreProgressHeight: CGFloat { clamp(7 * compactScale, min: 6, max: 8) }
+    var scoreCardCornerRadius: CGFloat { clamp(24 * compactScale, min: 22, max: 26) }
     var insightValueSize: CGFloat { isTabletLike ? 30 : 24 }
     var achievementCardWidth: CGFloat { isTabletLike ? 240 : 200 }
-    var scoreCardHeight: CGFloat { clamp(safeHeight * 0.096, min: 74, max: 88) }
-    var tertiaryButtonHeight: CGFloat { clamp(safeHeight * 0.072, min: 52, max: 62) }
-    var tertiaryButtonVerticalPadding: CGFloat { clamp(7.5 * compactScale, min: 6, max: 8.5) }
-    var tertiaryButtonIconSize: CGFloat { clamp(15 * compactScale, min: 14, max: 16.5) }
-    var tertiaryButtonLabelSize: CGFloat { clamp(11.5 * compactScale, min: 10.5, max: 12.5) }
-    var tertiaryButtonCornerRadius: CGFloat { clamp(20 * compactScale, min: 18, max: 22) }
-    var secondaryButtonHeight: CGFloat { clamp(safeHeight * 0.050, min: 42, max: 50) }
-    var secondaryButtonVerticalPadding: CGFloat { clamp(9.5 * compactScale, min: 8, max: 10.5) }
-    var secondaryButtonLabelSize: CGFloat { clamp(13.5 * compactScale, min: 12.5, max: 14.5) }
-    var secondaryButtonCornerRadius: CGFloat { clamp(22 * compactScale, min: 20, max: 24) }
-    var actionBlockHeight: CGFloat { tertiaryButtonHeight + secondaryButtonHeight + buttonGap }
+    var scoreCardHeight: CGFloat { clamp(safeHeight * 0.086, min: 68, max: 78) }
+    var tertiaryButtonHeight: CGFloat { utilityActionHeight }
+    var tertiaryButtonVerticalPadding: CGFloat { clamp(6.2 * compactScale, min: 5, max: 7) }
+    var tertiaryButtonIconSize: CGFloat { clamp(13.8 * compactScale, min: 13, max: 15.5) }
+    var tertiaryButtonLabelSize: CGFloat { clamp(10.8 * compactScale, min: 10.2, max: 12) }
+    var tertiaryButtonCornerRadius: CGFloat { clamp(16 * compactScale, min: 15, max: 18) }
+    var secondaryButtonHeight: CGFloat { primaryActionHeight }
+    var secondaryButtonVerticalPadding: CGFloat { clamp(8.2 * compactScale, min: 7, max: 9.5) }
+    var secondaryButtonLabelSize: CGFloat { clamp(14 * compactScale, min: 13, max: 15.5) }
+    var secondaryButtonCornerRadius: CGFloat { clamp(18 * compactScale, min: 16, max: 20) }
+    var primaryActionHeight: CGFloat { clamp(safeHeight * 0.050, min: 42, max: 50) }
+    var utilityActionHeight: CGFloat { clamp(safeHeight * 0.052, min: 42, max: 48) }
+    var featureActionWidth: CGFloat {
+        clamp(safeWidth * 0.245, min: 94, max: isTabletLike ? 150 : 112)
+    }
+    var actionDockPadding: CGFloat { clamp(7.5 * compactScale, min: 6, max: 9) }
+    var actionDockCornerRadius: CGFloat { clamp(22 * compactScale, min: 20, max: 24) }
+    var actionBlockHeight: CGFloat { primaryActionHeight + utilityActionHeight + actionRowGap + (actionDockPadding * 2) }
+    var headerPanelHeight: CGFloat { headerHeight + scoreCardHeight + headerPanelGap + (headerPanelPadding * 2) }
 
     var menuBoardSize: CGFloat {
         min(safeWidth - (sidePadding * 2), isTabletLike ? 430 : 350)
@@ -928,9 +1019,8 @@ private struct LayoutMetrics {
         let widthLimited = min(safeWidth - (boardSidePadding * 2), cap)
         let heightBudget = safeHeight
             - topPadding
-            - headerHeight
-            - gameContentTopPadding
-            - scoreCardHeight
+            - headerPanelHeight
+            - gameSectionGap
             - boardTopSpacing
             - boardBottomSpacing
             - actionBlockHeight

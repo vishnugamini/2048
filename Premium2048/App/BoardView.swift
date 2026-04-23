@@ -18,12 +18,26 @@ struct BoardView: View {
 
             ZStack {
                 RoundedRectangle(cornerRadius: metrics.cornerRadius, style: .continuous)
-                    .fill(palette.boardGradient)
+                    .fill(
+                        LinearGradient(
+                            colors: [
+                                Color.black.opacity(0.20),
+                                palette.accent.opacity(0.10),
+                                Color.white.opacity(0.08),
+                            ],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
                     .overlay(
                         RoundedRectangle(cornerRadius: metrics.cornerRadius, style: .continuous)
-                            .strokeBorder(palette.boardStroke, lineWidth: 1)
+                            .strokeBorder(Color.white.opacity(0.18), lineWidth: 1.2)
                     )
-                    .shadow(color: palette.shadow, radius: metrics.boardShadow, x: 0, y: metrics.boardShadow * 0.6)
+                    .shadow(color: palette.shadow.opacity(0.72), radius: metrics.boardShadow, x: 0, y: metrics.boardShadow * 0.48)
+
+                RoundedRectangle(cornerRadius: metrics.cornerRadius * 0.78, style: .continuous)
+                    .stroke(Color.white.opacity(0.05), lineWidth: 1)
+                    .padding(metrics.spacing * 1.15)
 
                 ForEach(0..<BoardState.dimension, id: \.self) { row in
                     ForEach(0..<BoardState.dimension, id: \.self) { column in
@@ -210,10 +224,10 @@ struct BoardView: View {
 private struct BoardMetrics {
     let size: CGFloat
 
-    var spacing: CGFloat { size * 0.024 }
+    var spacing: CGFloat { size * 0.028 }
     var tileSize: CGFloat { (size - (spacing * 5)) / 4 }
-    var cornerRadius: CGFloat { size * 0.082 }
-    var boardShadow: CGFloat { size * 0.07 }
+    var cornerRadius: CGFloat { size * 0.072 }
+    var boardShadow: CGFloat { size * 0.05 }
 
     func center(for position: BoardPosition) -> CGPoint {
         CGPoint(

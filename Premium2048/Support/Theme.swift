@@ -109,7 +109,7 @@ enum PremiumTheme {
                 accentSecondary: Color(red: 0.99, green: 0.84, blue: 0.39),
                 textPrimary: Color.white,
                 textSecondary: Color.white.opacity(0.72),
-                emptyTile: Color.white.opacity(0.06),
+                emptyTile: Color.white.opacity(0.095),
                 glow: Color(red: 0.98, green: 0.44, blue: 0.62),
                 shadow: Color.black.opacity(0.35)
             )
@@ -155,7 +155,7 @@ enum PremiumTheme {
                 accentSecondary: Color(red: 0.99, green: 0.86, blue: 0.60),
                 textPrimary: Color.white,
                 textSecondary: Color.white.opacity(0.72),
-                emptyTile: Color.white.opacity(0.05),
+                emptyTile: Color.white.opacity(0.09),
                 glow: Color(red: 0.99, green: 0.65, blue: 0.35),
                 shadow: Color.black.opacity(0.32)
             )
