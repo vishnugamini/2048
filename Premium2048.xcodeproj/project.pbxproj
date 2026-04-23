@@ -1,0 +1,319 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 56;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		A00000000000000000000001 /* Premium2048App.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000101 /* Premium2048App.swift */; };
+		A00000000000000000000002 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000102 /* ContentView.swift */; };
+		A00000000000000000000003 /* BoardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000103 /* BoardView.swift */; };
+		A00000000000000000000004 /* TileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000104 /* TileView.swift */; };
+		A00000000000000000000005 /* GameViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000105 /* GameViewModel.swift */; };
+		A00000000000000000000006 /* AppSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000106 /* AppSettings.swift */; };
+		A00000000000000000000007 /* PersistenceController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000107 /* PersistenceController.swift */; };
+		A00000000000000000000008 /* HapticsManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000108 /* HapticsManager.swift */; };
+		A00000000000000000000009 /* AudioManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000109 /* AudioManager.swift */; };
+		A0000000000000000000000A /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0000000000000000000010A /* Theme.swift */; };
+		A0000000000000000000000B /* GameModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0000000000000000000010B /* GameModels.swift */; };
+		A0000000000000000000000C /* BoardState.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0000000000000000000010C /* BoardState.swift */; };
+		A0000000000000000000000D /* GameEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0000000000000000000010D /* GameEngine.swift */; };
+		A0000000000000000000000E /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A0000000000000000000010F /* Assets.xcassets */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		A00000000000000000000101 /* Premium2048App.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Premium2048App.swift; sourceTree = "<group>"; };
+		A00000000000000000000102 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		A00000000000000000000103 /* BoardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BoardView.swift; sourceTree = "<group>"; };
+		A00000000000000000000104 /* TileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TileView.swift; sourceTree = "<group>"; };
+		A00000000000000000000105 /* GameViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameViewModel.swift; sourceTree = "<group>"; };
+		A00000000000000000000106 /* AppSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppSettings.swift; sourceTree = "<group>"; };
+		A00000000000000000000107 /* PersistenceController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PersistenceController.swift; sourceTree = "<group>"; };
+		A00000000000000000000108 /* HapticsManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HapticsManager.swift; sourceTree = "<group>"; };
+		A00000000000000000000109 /* AudioManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioManager.swift; sourceTree = "<group>"; };
+		A0000000000000000000010A /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
+		A0000000000000000000010B /* GameModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameModels.swift; sourceTree = "<group>"; };
+		A0000000000000000000010C /* BoardState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BoardState.swift; sourceTree = "<group>"; };
+		A0000000000000000000010D /* GameEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameEngine.swift; sourceTree = "<group>"; };
+		A0000000000000000000010E /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		A0000000000000000000010F /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		A00000000000000000000110 /* Premium2048.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; path = Premium2048.app; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		A00000000000000000000201 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		A00000000000000000000301 = {
+			isa = PBXGroup;
+			children = (
+				A00000000000000000000302 /* Premium2048 */,
+				A00000000000000000000303 /* Sources */,
+				A00000000000000000000304 /* Resources */,
+				A00000000000000000000305 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		A00000000000000000000302 /* Premium2048 */ = {
+			isa = PBXGroup;
+			children = (
+				A00000000000000000000306 /* App */,
+				A00000000000000000000307 /* Support */,
+			);
+			path = Premium2048;
+			sourceTree = "<group>";
+		};
+		A00000000000000000000303 /* Sources */ = {
+			isa = PBXGroup;
+			children = (
+				A0000000000000000000010B /* GameModels.swift */,
+				A0000000000000000000010C /* BoardState.swift */,
+				A0000000000000000000010D /* GameEngine.swift */,
+			);
+			path = Sources/GameCore;
+			sourceTree = SOURCE_ROOT;
+		};
+		A00000000000000000000304 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				A0000000000000000000010F /* Assets.xcassets */,
+			);
+			path = Premium2048/Resources;
+			sourceTree = SOURCE_ROOT;
+		};
+		A00000000000000000000305 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				A00000000000000000000110 /* Premium2048.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		A00000000000000000000306 /* App */ = {
+			isa = PBXGroup;
+			children = (
+				A00000000000000000000101 /* Premium2048App.swift */,
+				A00000000000000000000102 /* ContentView.swift */,
+				A00000000000000000000103 /* BoardView.swift */,
+				A00000000000000000000104 /* TileView.swift */,
+				A00000000000000000000105 /* GameViewModel.swift */,
+			);
+			path = App;
+			sourceTree = "<group>";
+		};
+		A00000000000000000000307 /* Support */ = {
+			isa = PBXGroup;
+			children = (
+				A00000000000000000000106 /* AppSettings.swift */,
+				A00000000000000000000107 /* PersistenceController.swift */,
+				A00000000000000000000108 /* HapticsManager.swift */,
+				A00000000000000000000109 /* AudioManager.swift */,
+				A0000000000000000000010A /* Theme.swift */,
+				A0000000000000000000010E /* Info.plist */,
+			);
+			path = Support;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		A00000000000000000000401 /* Premium2048 */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = A00000000000000000000602 /* Build configuration list for PBXNativeTarget "Premium2048" */;
+			buildPhases = (
+				A00000000000000000000202 /* Sources */,
+				A00000000000000000000201 /* Frameworks */,
+				A00000000000000000000203 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = Premium2048;
+			productName = Premium2048;
+			productReference = A00000000000000000000110 /* Premium2048.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		A00000000000000000000501 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1600;
+				LastUpgradeCheck = 1600;
+				TargetAttributes = {
+					A00000000000000000000401 = {
+						CreatedOnToolsVersion = 16.0;
+					};
+				};
+			};
+			buildConfigurationList = A00000000000000000000601 /* Build configuration list for PBXProject "Premium2048" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = A00000000000000000000301;
+			productRefGroup = A00000000000000000000305 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				A00000000000000000000401 /* Premium2048 */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		A00000000000000000000203 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A0000000000000000000000E /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		A00000000000000000000202 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A00000000000000000000001 /* Premium2048App.swift in Sources */,
+				A00000000000000000000002 /* ContentView.swift in Sources */,
+				A00000000000000000000003 /* BoardView.swift in Sources */,
+				A00000000000000000000004 /* TileView.swift in Sources */,
+				A00000000000000000000005 /* GameViewModel.swift in Sources */,
+				A00000000000000000000006 /* AppSettings.swift in Sources */,
+				A00000000000000000000007 /* PersistenceController.swift in Sources */,
+				A00000000000000000000008 /* HapticsManager.swift in Sources */,
+				A00000000000000000000009 /* AudioManager.swift in Sources */,
+				A0000000000000000000000A /* Theme.swift in Sources */,
+				A0000000000000000000000B /* GameModels.swift in Sources */,
+				A0000000000000000000000C /* BoardState.swift in Sources */,
+				A0000000000000000000000D /* GameEngine.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		A00000000000000000000701 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		A00000000000000000000702 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+			};
+			name = Release;
+		};
+		A00000000000000000000703 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = Premium2048/Support/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.codex.Premium2048;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Debug;
+		};
+		A00000000000000000000704 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = Premium2048/Support/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.codex.Premium2048;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		A00000000000000000000601 /* Build configuration list for PBXProject "Premium2048" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A00000000000000000000701 /* Debug */,
+				A00000000000000000000702 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		A00000000000000000000602 /* Build configuration list for PBXNativeTarget "Premium2048" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A00000000000000000000703 /* Debug */,
+				A00000000000000000000704 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = A00000000000000000000501 /* Project object */;
+}
