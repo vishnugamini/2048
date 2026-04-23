@@ -4,19 +4,28 @@ struct ContentView: View {
     @StateObject private var viewModel = GameViewModel()
 
     var body: some View {
-        ZStack {
-            PremiumTheme.background
-                .ignoresSafeArea()
+        GeometryReader { proxy in
+            let safeWidth = proxy.size.width - 40
+            let safeHeight = proxy.size.height - proxy.safeAreaInsets.top - proxy.safeAreaInsets.bottom - 52
+            let reservedHeight: CGFloat = 290
+            let boardSize = max(240, min(safeWidth, safeHeight - reservedHeight))
 
-            VStack(spacing: 22) {
-                topBar
-                boardHero
-                actionBar
-                swipeHint
+            ZStack {
+                PremiumTheme.background
+                    .ignoresSafeArea()
+
+                VStack(spacing: 18) {
+                    topBar(compact: proxy.size.height < 760)
+                    boardHero(boardSize: boardSize)
+                    actionBar
+                    swipeHint
+                    Spacer(minLength: 0)
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+                .padding(.horizontal, 20)
+                .padding(.top, proxy.safeAreaInsets.top + 12)
+                .padding(.bottom, max(proxy.safeAreaInsets.bottom, 16))
             }
-            .padding(.horizontal, 20)
-            .padding(.top, 20)
-            .padding(.bottom, 28)
         }
         .sheet(isPresented: $viewModel.showingSettings) {
             settingsSheet
@@ -33,15 +42,15 @@ struct ContentView: View {
         }
     }
 
-    private var topBar: some View {
+    private func topBar(compact: Bool) -> some View {
         VStack(alignment: .leading, spacing: 16) {
             HStack(alignment: .top) {
                 VStack(alignment: .leading, spacing: 6) {
                     Text("2048")
-                        .font(.system(size: 48, weight: .black, design: .rounded))
+                        .font(.system(size: compact ? 40 : 48, weight: .black, design: .rounded))
                         .foregroundStyle(.white)
                     Text("A minimal puzzle, finished like a luxury object.")
-                        .font(.system(size: 15, weight: .medium, design: .rounded))
+                        .font(.system(size: compact ? 14 : 15, weight: .medium, design: .rounded))
                         .foregroundStyle(Color.white.opacity(0.72))
                 }
 
@@ -64,9 +73,10 @@ struct ContentView: View {
         }
     }
 
-    private var boardHero: some View {
+    private func boardHero(boardSize: CGFloat) -> some View {
         VStack(spacing: 18) {
             BoardView(board: viewModel.board)
+                .frame(width: boardSize, height: boardSize)
                 .gesture(
                     DragGesture(minimumDistance: 20)
                         .onEnded { value in
@@ -114,7 +124,7 @@ struct ContentView: View {
                 .font(.system(size: 28, weight: .bold, design: .rounded))
                 .foregroundStyle(.white)
         }
-        .frame(width: 120, alignment: .leading)
+        .frame(minWidth: 104, idealWidth: 114, maxWidth: 118, alignment: .leading)
         .padding(14)
         .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 24, style: .continuous))
         .overlay(
