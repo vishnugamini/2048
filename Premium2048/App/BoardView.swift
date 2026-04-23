@@ -210,10 +210,10 @@ struct BoardView: View {
 private struct BoardMetrics {
     let size: CGFloat
 
-    var spacing: CGFloat { size * 0.035 }
+    var spacing: CGFloat { size * 0.024 }
     var tileSize: CGFloat { (size - (spacing * 5)) / 4 }
-    var cornerRadius: CGFloat { size * 0.09 }
-    var boardShadow: CGFloat { size * 0.08 }
+    var cornerRadius: CGFloat { size * 0.082 }
+    var boardShadow: CGFloat { size * 0.07 }
 
     func center(for position: BoardPosition) -> CGPoint {
         CGPoint(
