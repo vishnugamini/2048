@@ -4,6 +4,7 @@ final class PersistenceController {
     private enum Keys {
         static let stats = "premium2048.stats"
         static let settings = "premium2048.settings"
+        static let game = "premium2048.game"
     }
 
     private let defaults: UserDefaults
@@ -44,5 +45,25 @@ final class PersistenceController {
     func save(settings: AppSettings) {
         guard let data = try? encoder.encode(settings) else { return }
         defaults.set(data, forKey: Keys.settings)
+    }
+
+    func loadGame() -> PersistedGame? {
+        guard
+            let data = defaults.data(forKey: Keys.game),
+            let game = try? decoder.decode(PersistedGame.self, from: data)
+        else {
+            return nil
+        }
+
+        return game
+    }
+
+    func save(game: PersistedGame) {
+        guard let data = try? encoder.encode(game) else { return }
+        defaults.set(data, forKey: Keys.game)
+    }
+
+    func clearSavedGame() {
+        defaults.removeObject(forKey: Keys.game)
     }
 }

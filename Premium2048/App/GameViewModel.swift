@@ -23,6 +23,7 @@ final class GameViewModel: ObservableObject {
     @Published var overlayState: OverlayState?
     @Published var showingSettings = false
     @Published var showingStats = false
+    @Published private(set) var hasSavedGame = false
 
     private let persistence: PersistenceController
     private let haptics: HapticsManager
@@ -32,17 +33,32 @@ final class GameViewModel: ObservableObject {
 
     init(
         persistence: PersistenceController = PersistenceController(),
-        haptics: HapticsManager = .shared,
-        audio: AudioManager = .shared
+        haptics: HapticsManager? = nil,
+        audio: AudioManager? = nil
     ) {
         self.persistence = persistence
-        self.haptics = haptics
-        self.audio = audio
+        self.haptics = haptics ?? HapticsManager.shared
+        self.audio = audio ?? AudioManager.shared
 
-        var spawner = RandomTileSpawner()
-        let engine = GameEngine.newGame(spawner: &spawner)
         let stats = persistence.loadStats()
         let settings = persistence.loadSettings()
+        let persistedGame = persistence.loadGame()
+
+        let engine: GameEngine
+        if let persistedGame {
+            engine = GameEngine(
+                board: BoardState(rows: persistedGame.rows),
+                score: persistedGame.score,
+                status: Self.gameStatus(from: persistedGame.status)
+            )
+            hasPresentedWin = persistedGame.hasPresentedWin
+            hasSavedGame = true
+        } else {
+            var spawner = RandomTileSpawner()
+            engine = GameEngine.newGame(spawner: &spawner)
+            hasPresentedWin = false
+            hasSavedGame = false
+        }
 
         self.engine = engine
         self.board = engine.board
@@ -50,18 +66,21 @@ final class GameViewModel: ObservableObject {
         self.bestScore = stats.bestScore
         self.stats = stats
         self.settings = settings
-
-        recordNewGameIfNeeded()
     }
 
-    func restartGame() {
+    func startNewGame() {
         var spawner = RandomTileSpawner()
         let result = engine.restart(using: &spawner)
         board = result.board
         score = result.totalScore
         overlayState = nil
         hasPresentedWin = false
-        recordNewGameIfNeeded()
+        stats.recordNewGame()
+        stats.highestTile = max(stats.highestTile, board.maxTile)
+        bestScore = max(bestScore, stats.bestScore)
+        hasSavedGame = true
+        persistGameState()
+        persistence.save(stats: stats)
     }
 
     func handleSwipe(_ direction: MoveDirection) {
@@ -77,6 +96,7 @@ final class GameViewModel: ObservableObject {
 
         stats.recordMove(score: result.totalScore, board: result.board)
         persistence.save(stats: stats)
+        persistGameState()
 
         if settings.hapticsEnabled {
             haptics.moveAccepted()
@@ -107,6 +127,15 @@ final class GameViewModel: ObservableObject {
         }
     }
 
+    func continueGameAvailable() -> Bool {
+        hasSavedGame
+    }
+
+    func abandonCurrentGame() {
+        overlayState = nil
+        persistGameState()
+    }
+
     func dismissOverlay() {
         overlayState = nil
     }
@@ -119,10 +148,30 @@ final class GameViewModel: ObservableObject {
         max(stats.highestTile, board.maxTile)
     }
 
-    private func recordNewGameIfNeeded() {
-        stats.recordNewGame()
-        stats.highestTile = max(stats.highestTile, board.maxTile)
-        bestScore = max(bestScore, stats.bestScore)
-        persistence.save(stats: stats)
+    private func persistGameState() {
+        let persisted = PersistedGame(
+            rows: board.rows,
+            score: score,
+            status: Self.persistedStatus(from: engine.status),
+            hasPresentedWin: hasPresentedWin
+        )
+        persistence.save(game: persisted)
+        hasSavedGame = true
+    }
+
+    private static func persistedStatus(from status: GameStatus) -> PersistedGame.PersistedStatus {
+        switch status {
+        case .playing: return .playing
+        case .won: return .won
+        case .lost: return .lost
+        }
+    }
+
+    private static func gameStatus(from status: PersistedGame.PersistedStatus) -> GameStatus {
+        switch status {
+        case .playing: return .playing
+        case .won: return .won
+        case .lost: return .lost
+        }
     }
 }

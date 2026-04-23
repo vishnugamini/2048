@@ -21,6 +21,7 @@
 		A0000000000000000000000C /* BoardState.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0000000000000000000010C /* BoardState.swift */; };
 		A0000000000000000000000D /* GameEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0000000000000000000010D /* GameEngine.swift */; };
 		A0000000000000000000000E /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A0000000000000000000010F /* Assets.xcassets */; };
+		A0000000000000000000000F /* PersistedGame.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000111 /* PersistedGame.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -40,6 +41,7 @@
 		A0000000000000000000010E /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		A0000000000000000000010F /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		A00000000000000000000110 /* Premium2048.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; path = Premium2048.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		A00000000000000000000111 /* PersistedGame.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PersistedGame.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -118,6 +120,7 @@
 				A00000000000000000000108 /* HapticsManager.swift */,
 				A00000000000000000000109 /* AudioManager.swift */,
 				A0000000000000000000010A /* Theme.swift */,
+				A00000000000000000000111 /* PersistedGame.swift */,
 				A0000000000000000000010E /* Info.plist */,
 			);
 			path = Support;
@@ -202,6 +205,7 @@
 				A00000000000000000000008 /* HapticsManager.swift in Sources */,
 				A00000000000000000000009 /* AudioManager.swift in Sources */,
 				A0000000000000000000000A /* Theme.swift in Sources */,
+				A0000000000000000000000F /* PersistedGame.swift in Sources */,
 				A0000000000000000000000B /* GameModels.swift in Sources */,
 				A0000000000000000000000C /* BoardState.swift in Sources */,
 				A0000000000000000000000D /* GameEngine.swift in Sources */,
